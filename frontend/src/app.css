@@ -1,0 +1,16 @@
+#root {
+  max-width: 100vw;
+}
+
+button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.placeholder {
+  display:inline-block;
+}
+.placeholder:after {
+  content: attr(data-placeholder);
+}
+
