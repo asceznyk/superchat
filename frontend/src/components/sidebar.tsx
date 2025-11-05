@@ -46,7 +46,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <p>Diagene</p>
+        <p>Superchat</p>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>

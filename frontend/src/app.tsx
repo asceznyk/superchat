@@ -1,13 +1,14 @@
 import './app.css'
+import { useState } from 'react';
 import { ChatHeader, ChatWindow } from '@/components/container'
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/sidebar'
-import { ThemeProvider } from '@/components/theme-provider'
 
-function App() {
+export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   return (
-    <ThemeProvider>
-      <div class="relative flex h-full w-full flex-row">
+    <div className="relative flex h-full w-full flex-row">
+      {isLoggedIn && (
         <div class="flex">
           <SidebarProvider defaultOpen={false}>
             <AppSidebar/>
@@ -16,13 +17,12 @@ function App() {
             </main>
           </SidebarProvider>
         </div>
-        <div class="flex-grow flex-col">
-          <ChatHeader/>
-          <ChatWindow/>
-        </div>
+      )}
+      <div className="flex-grow flex-col">
+        <ChatHeader isLoggedIn={isLoggedIn}/>
+        <ChatWindow/>
       </div>
-    </ThemeProvider>
+    </div>
   )
 }
 
-export default App

@@ -1,10 +1,10 @@
 services:
   backend:
     build: ./backend
-    image: diagene_backend:latest
+    image: superchat_backend:latest
     container_name: dev_backend
     networks:
-      - diagene_net
+      - superchat_net
     volumes:
       - ./backend:/app
     expose:
@@ -21,15 +21,15 @@ services:
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
-      - diagene_net
+      - superchat_net
     restart: unless-stopped
 
   frontend:
     build: ./frontend
-    image: diagene_frontend:latest
+    image: superchat_frontend:latest
     container_name: dev_frontend
     networks:
-      - diagene_net
+      - superchat_net
     volumes:
       - ./frontend:/app
       - node_modules:/app/node_modules
@@ -40,7 +40,7 @@ services:
       - NODE_ENV=development
 
 networks:
-  diagene_net:
+  superchat_net:
     driver: bridge
 
 volumes:

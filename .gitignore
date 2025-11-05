@@ -1,0 +1,7 @@
+__pycache__/
+node_modules/
+mvp/
+.env
+.ipynb_checkpoints/
+.pytest_cache/
+
