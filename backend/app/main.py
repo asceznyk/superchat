@@ -7,7 +7,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 from app.models import states
-from app.api.routes import chat
+from app.api import chat
 
 app = FastAPI(root_path="/api")
 
