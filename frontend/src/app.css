@@ -14,3 +14,7 @@ button:focus {
   content: attr(data-placeholder);
 }
 
+.chat-input {
+  min-width: 70%;
+}
+

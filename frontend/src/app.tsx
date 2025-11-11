@@ -7,22 +7,23 @@ import { AppSidebar } from '@/components/sidebar'
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   return (
-    <div className="relative flex h-full w-full flex-row">
+    <div className="relative flex flex-col md:flex-row h-full w-full overflow-hidden">
       {isLoggedIn && (
-        <div class="flex">
+        <div className="flex md:w-auto w-full">
           <SidebarProvider defaultOpen={false}>
-            <AppSidebar/>
+            <AppSidebar />
             <main>
-              <SidebarTrigger/>
+              <SidebarTrigger />
             </main>
           </SidebarProvider>
         </div>
       )}
-      <div className="flex-grow flex-col">
-        <ChatHeader isLoggedIn={isLoggedIn}/>
-        <ChatWindow/>
+      <div className="flex flex-col flex-grow w-full">
+        <ChatHeader isLoggedIn={isLoggedIn} />
+        <ChatWindow />
       </div>
     </div>
-  )
+  );
 }
+
 

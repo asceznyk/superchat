@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ArrowUp } from "lucide-react";
 
 interface PromptAreaProps {
   placeholder: string;
@@ -13,32 +14,34 @@ interface ChatHeaderProps {
   isLoggedIn: boolean;
 }
 
-function TypographyH3Link({text}: TypographyH3LinkProps) {
+function TypographyH3Link({ text }: TypographyH3LinkProps) {
   return (
     <h3 className="scroll-m-20 text-2xl font-semibold">
-      <a href='/'>{text}</a>
+      <a href="/">{text}</a>
     </h3>
   );
 }
 
-function PromptArea({placeholder}: PromptAreaProps) {
-  const [inputValue, setInputValue] = useState('');
-  function handleInput(event) {
-    setInputValue(event.target.innerText);
+function PromptArea({ placeholder }: PromptAreaProps) {
+  const [inputValue, setInputValue] = useState("");
+  function handleInput(event: React.FormEvent<HTMLSpanElement>) {
+    setInputValue(event.currentTarget.innerText);
   }
-  const classSpan:string = `whitespace-pre-wrap outline-none
-                            cursor-text after:text-gray-500
-                            pointer-events-auto`;
+  const classSpan = `
+    whitespace-pre-wrap outline-none
+    cursor-text after:text-gray-500
+    pointer-events-auto w-full
+  `;
   return (
     <div
-      id="prompt-text-area"
-      className="w-90 min-h-10 whitespace-pre-wrap
-      break-words resize-none overflow-y-auto outline-none
-      border-1 border-solid rounded-sm px-2 py-2"
+      id="user-prompt-textarea"
+      className="flex-1 min-h-10 whitespace-pre-wrap
+      break-words overflow-y-auto outline-none
+      px-2 py-2"
     >
       <span
         className={
-          (inputValue.trim().length <= 0)
+          inputValue.length <= 0
             ? `${classSpan} placeholder`
             : classSpan
         }
@@ -46,24 +49,36 @@ function PromptArea({placeholder}: PromptAreaProps) {
         onInput={handleInput}
         data-placeholder={placeholder}
         tabIndex={0}
-      >
-      </span>
+      />
     </div>
   );
 }
 
-
-export function ChatHeader({isLoggedIn}: ChatHeaderProps) {
+function SendButtonArea() {
   return (
-    <div className="flex w-full py-2 px-4 bg-background">
-      <div className="flex min-w-30">
-        <TypographyH3Link text="Superchat" />
-      </div>
-      <div className="flex flex-1" />
+    <div className="flex items-end">
+      <Button className="rounded-full cursor-pointer h-10 w-10 p-0 ml-2">
+        <ArrowUp />
+      </Button>
+    </div>
+  );
+}
+
+export function ChatHeader({ isLoggedIn }: ChatHeaderProps) {
+  const headerClass = `
+    flex w-full items-center justify-between
+    py-3 px-4 bg-background border-b border-border
+  `;
+  const buttonClass = `
+    rounded-full cursor-pointer px-4 py-2 text-sm sm:text-base
+  `;
+  return (
+    <div className={headerClass}>
+      <TypographyH3Link text="Superchat" />
       {!isLoggedIn && (
-        <div className="flex min-w-20 justify-end gap-2">
-          <Button className="rounded-full">Login</Button>
-          <Button className="rounded-full">Signup</Button>
+        <div className="flex gap-2">
+          <Button className={buttonClass}>Login</Button>
+          <Button className={buttonClass}>Signup</Button>
         </div>
       )}
     </div>
@@ -71,21 +86,27 @@ export function ChatHeader({isLoggedIn}: ChatHeaderProps) {
 }
 
 export function ChatWindow() {
+  const classChatArea = `
+    flex items-center justify-between
+    border border-solid border-gray-300 rounded-full
+    w-full max-w-[700px] mx-auto gap-2
+    py-2 px-2 sm:px-4
+  `;
   return (
-    <div className="flex mx-auto px-4 flex-col">
-      <div className="flex justify-center min-h-30">
-        <div className="flex mb-16 mt-16">
-          <p className="text-2xl text-center">
+    <div className="flex flex-col w-full px-2 sm:px-4">
+      <div className="flex justify-center min-h-[120px] sm:min-h-[150px]">
+        <div className="flex mb-8 mt-8 sm:mb-16 sm:mt-16">
+          <p className="text-xl sm:text-2xl text-center">
             How can I help you today?
           </p>
         </div>
       </div>
-      <div className="flex justify-center min-w-70">
-        <div className="flex">
-          <PromptArea placeholder="Ask anything"/>
-        </div>
+      <div className={classChatArea}>
+        <PromptArea placeholder="Ask anything..." />
+        <SendButtonArea />
       </div>
     </div>
   );
 }
+
 
