@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState, useRef, useEffect } from "react";
 import { ArrowUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface PromptAreaProps {
   placeholder: string;
+  onHeightChange?: (h: number) => void;
 }
 
 interface TypographyH3LinkProps {
@@ -22,37 +23,50 @@ function TypographyH3Link({ text }: TypographyH3LinkProps) {
   );
 }
 
-function PromptArea({ placeholder }: PromptAreaProps) {
+function PromptArea({ placeholder, onHeightChange }: PromptAreaProps) {
   const [inputValue, setInputValue] = useState("");
-  function handleInput(event: React.FormEvent<HTMLSpanElement>) {
-    setInputValue(event.currentTarget.innerText);
-  }
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (el) {
+      el.style.height = "auto";
+      el.style.height = `${el.scrollHeight}px`;
+      onHeightChange?.(el.scrollHeight);
+    }
+  }, [inputValue]);
+  const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInputValue(event.target.value);
+  };
   const classSpan = `
-    whitespace-pre-wrap outline-none
-    cursor-text after:text-gray-500
-    pointer-events-auto w-full
+    absolute top-2 text-gray-500 pointer-events-none select-none
   `;
   return (
-    <div
-      id="user-prompt-textarea"
-      className="flex-1 min-h-10 whitespace-pre-wrap
-      break-words overflow-y-auto outline-none
-      px-2 py-2"
-    >
-      <span
-        className={
-          inputValue.length <= 0
-            ? `${classSpan} placeholder`
-            : classSpan
-        }
-        contentEditable
-        onInput={handleInput}
-        data-placeholder={placeholder}
+    <div className="relative flex-grow min-h-10 px-2 py-2">
+      {inputValue.length === 0 && (
+        <span
+          className={classSpan}
+          data-placeholder={placeholder}
+        >
+          {placeholder}
+        </span>
+      )}
+      <textarea
+        ref={textareaRef}
+        value={inputValue}
+        onChange={handleInput}
+        className="
+          block w-full resize-none overflow-hidden
+          bg-transparent outline-none
+          text-base text-foreground
+          placeholder-transparent
+        "
+        rows={1}
         tabIndex={0}
       />
     </div>
   );
 }
+
 
 function SendButtonArea() {
   return (
@@ -86,11 +100,12 @@ export function ChatHeader({ isLoggedIn }: ChatHeaderProps) {
 }
 
 export function ChatWindow() {
+  const [inputHeight, setInputHeight] = useState(40);
   const classChatArea = `
-    flex items-center justify-between
-    border border-solid border-gray-300 rounded-full
+    flex justify-between items-end
+    border border-solid border-gray-300
     w-full max-w-[700px] mx-auto gap-2
-    py-2 px-2 sm:px-4
+    py-2 px-2
   `;
   return (
     <div className="flex flex-col w-full px-2 sm:px-4">
@@ -101,12 +116,18 @@ export function ChatWindow() {
           </p>
         </div>
       </div>
-      <div className={classChatArea}>
-        <PromptArea placeholder="Ask anything..." />
+      <div
+        className={
+          `${classChatArea} ${inputHeight > 40 ? "rounded-md" : "rounded-full"}`
+        }
+      >
+        <PromptArea
+          placeholder="Ask anything..."
+          onHeightChange={setInputHeight}
+        />
         <SendButtonArea />
       </div>
     </div>
   );
 }
-
 
