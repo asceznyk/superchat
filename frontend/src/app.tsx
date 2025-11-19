@@ -1,6 +1,6 @@
 import './app.css'
 import { useState } from 'react';
-import { ChatHeader, ChatWindow } from '@/components/container'
+import { ChatHeader, ChatWindow, ChatFooter } from '@/components/chat-layout'
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/sidebar'
 
@@ -21,6 +21,7 @@ export default function App() {
       <div className="flex flex-col flex-grow w-full">
         <ChatHeader isLoggedIn={isLoggedIn} />
         <ChatWindow />
+        <ChatFooter />
       </div>
     </div>
   );
