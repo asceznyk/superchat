@@ -20,7 +20,6 @@ async def get_chat_response(chat_req:ChatRequest, is_auth:bool):
   chat_id = chat_req.chat_id
   await add_message(chat_id, chat_req)
   chat_history = await get_history(chat_id)
-  print(f"chat_history = {chat_history}")
   messages = []
   for msg_str in chat_history:
     msg_json = json.loads(msg_str)

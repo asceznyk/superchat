@@ -2,11 +2,10 @@ import uuid
 
 from typing import Optional, Dict
 
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import StreamingResponse
 from fastapi import APIRouter, Depends, Header, HTTPException
 
-from app.models.states import ChatRequest, AIResponse
+from app.models.states import ChatRequest
 from app.services.openai_client import get_chat_response
 
 router = APIRouter()

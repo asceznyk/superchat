@@ -7,7 +7,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 from app.models import states
-from app.api import chat
+from app.api import chat, mock
 
 app = FastAPI(root_path="/api")
 
@@ -20,6 +20,7 @@ app.add_middleware(
 )
 
 app.include_router(chat.router, prefix="/chat", tags=["chat"])
+app.include_router(mock.router, prefix="/mock", tags=["mock"])
 
 @app.get("/", response_model=states.AIResponse)
 async def root() -> JSONResponse:

@@ -6,6 +6,8 @@ import { AppSidebar } from '@/components/sidebar'
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [footerHeight, setFooterHeight] = useState(80);
+  const headerHeight = 80;
   return (
     <div className="relative flex flex-col md:flex-row h-full w-full overflow-hidden">
       {isLoggedIn && (
@@ -20,8 +22,8 @@ export default function App() {
       )}
       <div className="flex flex-col flex-grow w-full">
         <ChatHeader isLoggedIn={isLoggedIn} />
-        <ChatWindow />
-        <ChatFooter />
+        <ChatWindow headerHeight={headerHeight} footerHeight={footerHeight}/>
+        <ChatFooter onHeightChange={setFooterHeight}/>
       </div>
     </div>
   );

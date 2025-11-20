@@ -8,8 +8,8 @@ interface TypographyH3LinkProps {
 
 function TypographyH3Link({ text }: TypographyH3LinkProps) {
   return (
-    <h3 className="scroll-m-20 text-2xl font-semibold">
-      <a href="/">{text}</a>
+    <h3 className="text-2xl font-semibold">
+      <a href="/" className="text-blue-600">{text}</a>
     </h3>
   );
 }
@@ -39,31 +39,31 @@ export function ChatHeader({ isLoggedIn }: ChatHeaderProps) {
   );
 }
 
-export function ChatWindow() {
+interface ChatWindowProps {
+  headerHeight: number;
+  footerHeight: number;
+}
+
+export function ChatWindow(
+  {headerHeight, footerHeight}: ChatWindowProps
+) {
+  const messages = ['Hi', 'Hello', 'Yes', 'No', 'Maybe!', 'This', 'is', 'good', 'stuff'];
   return (
-    <div className="flex flex-col w-full px-2 sm:px-4">
-      <div className="flex justify-center min-h-[120px] sm:min-h-[150px]">
-        <div className="flex mb-8 mt-8 sm:mb-16 sm:mt-16">
-          <p className="text-xl sm:text-2xl text-center">
-            lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum
-            lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum
-            lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum
-            lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum
-            lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum
-            lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum
-            lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum
-            lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum
-            lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum
-            lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum
-            lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum
-            lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum
-            lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum
-            lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum
-            lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum
-            lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum
-          </p>
+    <div
+      className="flex-1 overflow-y-auto px-4"
+      style={{
+        marginTop: headerHeight,
+        marginBottom: footerHeight + 20
+      }}
+    >
+      {messages.map((m, i) => (
+        <div
+          key={i}
+          className="max-w-min bg-blue-600 text-white p-3 rounded-xl ml-auto mb-4"
+        >
+          {m}
         </div>
-      </div>
+      ))}
     </div>
   );
 }
@@ -119,25 +119,44 @@ function PromptArea({ placeholder, onHeightChange }: PromptAreaProps) {
   );
 }
 
-function SendButtonArea() {
+function SendButton() {
   return (
     <div className="flex items-end">
-      <Button className="rounded-full cursor-pointer h-10 w-10 p-0 ml-2">
+      <Button
+        className="rounded-full cursor-pointer h-10 w-10 p-0 ml-2"
+      >
         <ArrowUp />
       </Button>
     </div>
   );
 }
 
-export function ChatFooter() {
+interface ChatFooterProps {
+  onHeightChange?: (h: number) => void;
+}
+
+export function ChatFooter({onHeightChange}: ChatFooterProps) {
   const [inputHeight, setInputHeight] = useState(40);
+  const footerRef = useRef<HTMLDivElement>(null);
   const classTextarea = `
     flex justify-between items-end border border-solid border-gray-300
     w-full max-w-[700px] mx-auto gap-2
     py-2 px-2
   `;
+  useEffect(() => {
+    const el = footerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(() => {
+      onHeightChange?.(el.offsetHeight);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
   return (
-    <div className="flex fixed bottom-0 bg-background flex-col w-full px-4">
+    <div
+      ref={footerRef}
+      className="flex fixed bottom-0 bg-background flex-col w-full px-4"
+    >
       <div className="flex">
         <div
           className={
@@ -148,7 +167,7 @@ export function ChatFooter() {
             placeholder="Ask anything..."
             onHeightChange={setInputHeight}
           />
-          <SendButtonArea />
+          <SendButton />
         </div>
       </div>
       <div className="flex justify-center">
