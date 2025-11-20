@@ -56,6 +56,7 @@ export function ChatWindow(
         marginBottom: footerHeight + 20
       }}
     >
+      <div className="max-w-[700px] mx-auto">
       {messages.map((m, i) => (
         <div
           key={i}
@@ -64,6 +65,7 @@ export function ChatWindow(
           {m}
         </div>
       ))}
+      </div>
     </div>
   );
 }
