@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useChatStore } from "@/store/chat-store";
 
 interface TypographyH3LinkProps {
   text: string;
@@ -47,7 +48,7 @@ interface ChatWindowProps {
 export function ChatWindow(
   {headerHeight, footerHeight}: ChatWindowProps
 ) {
-  const messages = ['Hi', 'Hello', 'Yes', 'No', 'Maybe!', 'This', 'is', 'good', 'stuff'];
+  const messageHistory = useChatStore((s) => s.messageHistory);
   return (
     <div
       className="flex-1 overflow-y-auto px-4"
@@ -56,13 +57,13 @@ export function ChatWindow(
         marginBottom: footerHeight + 20
       }}
     >
-      <div className="max-w-[700px] mx-auto">
-      {messages.map((m, i) => (
+      <div className="max-w-[800px] mx-auto">
+      {messageHistory.map((m) => (
         <div
-          key={i}
+          key={m.id}
           className="max-w-min bg-blue-600 text-white p-3 rounded-xl ml-auto mb-4"
         >
-          {m}
+          {m.msg_body}
         </div>
       ))}
       </div>
@@ -76,7 +77,8 @@ interface PromptAreaProps {
 }
 
 function PromptArea({ placeholder, onHeightChange }: PromptAreaProps) {
-  const [inputValue, setInputValue] = useState("");
+  const userInput = useChatStore((s) => s.userInput);
+  const setUserInput = useChatStore((s) => s.setUserInput);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     const el = textareaRef.current;
@@ -85,16 +87,17 @@ function PromptArea({ placeholder, onHeightChange }: PromptAreaProps) {
       el.style.height = `${el.scrollHeight}px`;
       onHeightChange?.(el.scrollHeight);
     }
-  }, [inputValue]);
+  }, [userInput]);
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInputValue(event.target.value);
+    const val = event.target.value;
+    setUserInput(val);
   };
   const classSpan = `
     absolute top-2 text-gray-500 pointer-events-none select-none
   `;
   return (
     <div className="relative flex-grow min-h-10 px-2 py-2">
-      {inputValue.length === 0 && (
+      {userInput.length === 0 && (
         <span
           className={classSpan}
           data-placeholder={placeholder}
@@ -104,7 +107,7 @@ function PromptArea({ placeholder, onHeightChange }: PromptAreaProps) {
       )}
       <textarea
         ref={textareaRef}
-        value={inputValue}
+        value={userInput}
         onChange={handleInput}
         className="
           block w-full resize-none
@@ -112,7 +115,6 @@ function PromptArea({ placeholder, onHeightChange }: PromptAreaProps) {
           text-base text-foreground
           placeholder-transparent
           max-h-[200px] overflow-y-auto
-          hide-scrollbar
         "
         rows={1}
         tabIndex={0}
@@ -122,10 +124,25 @@ function PromptArea({ placeholder, onHeightChange }: PromptAreaProps) {
 }
 
 function SendButton() {
+  const addMessage = useChatStore((s) => s.addMessage);
+  const setUserInput = useChatStore((s) => s.setUserInput);
+  const userInput = useChatStore((s) => s.userInput);
+  const handleSend = () => {
+    console.log("userInput - before: ", userInput);
+    if (!userInput.trim()) return;
+    addMessage({
+      id: "some-random-id",
+      role: "user",
+      msg_body: userInput,
+    });
+    setUserInput("");
+    console.log("userInput - after: ", userInput);
+  };
   return (
     <div className="flex items-end">
       <Button
         className="rounded-full cursor-pointer h-10 w-10 p-0 ml-2"
+        onClick={handleSend}
       >
         <ArrowUp />
       </Button>
@@ -142,7 +159,7 @@ export function ChatFooter({onHeightChange}: ChatFooterProps) {
   const footerRef = useRef<HTMLDivElement>(null);
   const classTextarea = `
     flex justify-between items-end border border-solid border-gray-300
-    w-full max-w-[700px] mx-auto gap-2
+    w-full max-w-[800px] mx-auto gap-2
     py-2 px-2
   `;
   useEffect(() => {
@@ -159,7 +176,7 @@ export function ChatFooter({onHeightChange}: ChatFooterProps) {
       ref={footerRef}
       className="flex fixed bottom-0 bg-background flex-col w-full px-4"
     >
-      <div className="flex">
+      <div className="flex mb-[4px]">
         <div
           className={
             `${classTextarea} ${inputHeight > 40 ? "rounded-md" : "rounded-full"}`
@@ -172,8 +189,8 @@ export function ChatFooter({onHeightChange}: ChatFooterProps) {
           <SendButton />
         </div>
       </div>
-      <div className="flex justify-center">
-        <span className="text-sm sm:text-base">
+      <div className="flex justify-center mb-[4px]">
+        <span className="text-sm">
           Superchat is a ChatGPT wrapper - it can make mistakes
         </span>
       </div>
