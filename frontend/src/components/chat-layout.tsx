@@ -49,15 +49,30 @@ export function ChatWindow(
   {headerHeight, footerHeight}: ChatWindowProps
 ) {
   const messageHistory = useChatStore((s) => s.messageHistory);
+  const containerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = containerRef.current;
+    if (el) {
+      el.scrollTo({
+        top: el.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [messageHistory]);
   return (
     <div
-      className="flex-1 overflow-y-auto px-4"
+      ref={containerRef}
+      className="overflow-y-auto px-4"
       style={{
         marginTop: headerHeight,
-        marginBottom: footerHeight + 20
+        marginBottom: footerHeight + 20,
+        height: `calc(100vh - ${headerHeight + footerHeight + 20}px)`
       }}
+      id="yochat"
     >
-      <div className="max-w-[800px] mx-auto">
+      <div
+        className="max-w-[800px] mx-auto"
+      >
       {messageHistory.map((m) => (
         <div
           key={m.id}
@@ -128,7 +143,6 @@ function SendButton() {
   const setUserInput = useChatStore((s) => s.setUserInput);
   const userInput = useChatStore((s) => s.userInput);
   const handleSend = () => {
-    console.log("userInput - before: ", userInput);
     if (!userInput.trim()) return;
     addMessage({
       id: "some-random-id",
@@ -136,7 +150,6 @@ function SendButton() {
       msg_body: userInput,
     });
     setUserInput("");
-    console.log("userInput - after: ", userInput);
   };
   return (
     <div className="flex items-end">
