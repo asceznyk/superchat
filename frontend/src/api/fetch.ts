@@ -9,4 +9,23 @@ export async function getRoot() {
   return res.data;
 }
 
+export async function streamMockResponse(msgBody:string, chatId:string="") {
+  const res = await fetch("/api/mock/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(
+      {
+        role: "user",
+        chat_id: chatId,
+        msg_body: msgBody,
+      }
+    ),
+  });
+  if (!res.ok) throw new Error("Request failed");
+  const reader = res.body!.getReader();
+  const decoder = new TextDecoder();
+  return { reader, decoder };
+}
+
+
 

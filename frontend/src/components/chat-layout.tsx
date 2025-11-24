@@ -1,7 +1,12 @@
 import { useState, useRef, useEffect } from "react";
+import { v4 as uuidv4 } from "uuid";
+
 import { ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MarkdownMessage } from "@/components/markdown-message"
+
 import { useChatStore } from "@/store/chat-store";
+import { streamMockResponse } from "@/api/fetch";
 
 interface TypographyH3LinkProps {
   text: string;
@@ -59,6 +64,14 @@ export function ChatWindow(
       });
     }
   }, [messageHistory]);
+  const userBubbleClass = `
+    w-fit break-words whitespace-pre-wrap max-w-[85%] bg-gray-600
+    text-white p-3 rounded-xl ml-auto mb-4
+  `;
+  const assistantBubbleClass = `
+    w-fit break-words whitespace-pre-wrap max-w-[100%] bg-gray-900
+    text-white p-3 rounded-xl mr-auto mb-4
+  `;
   return (
     <div
       ref={containerRef}
@@ -68,7 +81,6 @@ export function ChatWindow(
         marginBottom: footerHeight + 20,
         height: `calc(100vh - ${headerHeight + footerHeight + 20}px)`
       }}
-      id="yochat"
     >
       <div
         className="max-w-[800px] mx-auto"
@@ -76,9 +88,9 @@ export function ChatWindow(
       {messageHistory.map((m) => (
         <div
           key={m.id}
-          className="max-w-min bg-blue-600 text-white p-3 rounded-xl ml-auto mb-4"
+          className={m.role === "user" ? userBubbleClass : assistantBubbleClass}
         >
-          {m.msg_body}
+          <MarkdownMessage text={m.msgBody}/>
         </div>
       ))}
       </div>
@@ -139,17 +151,30 @@ function PromptArea({ placeholder, onHeightChange }: PromptAreaProps) {
 }
 
 function SendButton() {
-  const addMessage = useChatStore((s) => s.addMessage);
-  const setUserInput = useChatStore((s) => s.setUserInput);
   const userInput = useChatStore((s) => s.userInput);
-  const handleSend = () => {
+  const setUserInput = useChatStore((s) => s.setUserInput);
+  const chatId = useChatStore((s) => s.chatId);
+  const setChatId = useChatStore((s) => s.setChatId);
+  const addUserMessage = useChatStore((s) => s.addUserMessage);
+  const addAssistantMessage = useChatStore((s) => s.addAssistantMessage);
+  const handleSend = async () => {
     if (!userInput.trim()) return;
-    addMessage({
-      id: "some-random-id",
+    addUserMessage({
+      id: uuidv4(),
       role: "user",
-      msg_body: userInput,
+      msgBody: userInput,
     });
+    const msgId = uuidv4();
     setUserInput("");
+    const { reader, decoder } = await streamMockResponse(userInput, chatId);
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value);
+      const obj = JSON.parse(chunk);
+      setChatId(obj.chat_id);
+      addAssistantMessage(msgId, obj);
+    }
   };
   return (
     <div className="flex items-end">

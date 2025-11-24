@@ -7,6 +7,8 @@ class ChatRequest(BaseModel):
   msg_body:str
 
 class DummyRequest(BaseModel):
+  role:Optional[str]
+  chat_id:Optional[str]
   msg_body:str
 
 class AIChunkResponse(BaseModel):

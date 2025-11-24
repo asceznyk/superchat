@@ -3,26 +3,46 @@ import { create } from "zustand";
 interface ChatMessage {
   id: string;
   role: "user" | "assistant";
-  msg_body: string;
+  msgBody: string;
 }
 
 interface ChatState {
+  chatId: string;
+  setChatId: (text: string) => void;
   userInput: string;
-  messageHistory: ChatMessage[];
   setUserInput: (text: string) => void;
-  addMessage: (msg: ChatMessage) => void;
-  clearInput: () => void;
+  messageHistory: ChatMessage[];
+  addUserMessage: (msg: ChatMessage) => void;
+  addAssistantMessage: (id: string, msg: ChatMessage) => void;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
   userInput: "",
-  messageHistory: [],
   setUserInput: (text) => set({ userInput: text }),
-  addMessage: (msg) =>
+  chatId: "",
+  setChatId: (text) => set({ chatId: text }),
+  messageHistory: [],
+  addUserMessage: (msg) =>
     set((state) => ({
       messageHistory: [...state.messageHistory, msg],
     })),
-  clearInput: () => set({ userInput: "" }),
+  addAssistantMessage: (id, chunk) =>
+    set((state) => {
+      const idx = state.messageHistory.findIndex((m) => m.id === id);
+      if (idx !== -1) {
+        const newHistory = state.messageHistory.map((m, i) =>
+          i === idx ? { ...m, msgBody: m.msgBody + chunk.msg_body } : m
+        );
+        return { messageHistory: newHistory };
+      } else {
+        return {
+          messageHistory: [
+            ...state.messageHistory,
+            { id, role: "assistant", msgBody: chunk.msg_body },
+          ],
+        };
+      }
+    }),
 }));
 
 
