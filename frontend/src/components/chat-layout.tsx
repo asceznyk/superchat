@@ -69,7 +69,7 @@ export function ChatWindow(
     text-white p-3 rounded-xl ml-auto mb-4
   `;
   const assistantBubbleClass = `
-    w-fit break-words whitespace-pre-wrap max-w-[100%] bg-gray-900
+    w-fit break-words whitespace-normal max-w-[100%] bg-gray-900
     text-white p-3 rounded-xl mr-auto mb-4
   `;
   return (
@@ -171,9 +171,13 @@ function SendButton() {
       const { value, done } = await reader.read();
       if (done) break;
       const chunk = decoder.decode(value);
-      const obj = JSON.parse(chunk);
-      setChatId(obj.chat_id);
-      addAssistantMessage(msgId, obj);
+      try {
+        const obj = JSON.parse(chunk);
+        if(chatId === "") setChatId(obj.chat_id);
+        addAssistantMessage(msgId, obj);
+      } catch(err) {
+        console.log("Couldn't parse chunk from backend", err);
+      }
     }
   };
   return (
