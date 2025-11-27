@@ -48,7 +48,7 @@ def hello_world():
       authenticated = False
     )
     await asyncio.sleep(0.02)
-    yield f"{data.model_dump_json()}\n\n".encode("utf-8")
+    yield f"{data.model_dump_json()}\n".encode("utf-8")
 
 @router.post("/")
 async def dummy(dummy_req:DummyRequest):

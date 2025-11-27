@@ -18,7 +18,6 @@ def get_user_from_token(auth:Optional[str]=Header(None)) -> Dict[str,str]:
 
 @router.post("/")
 async def chat(chat_req:ChatRequest, user=Depends(get_user_from_token)):
-  #if user["authenticated"]: ##TODO
   if not chat_req.chat_id:
     chat_req.chat_id = str(uuid.uuid4())
   return StreamingResponse(

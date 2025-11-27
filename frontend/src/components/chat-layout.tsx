@@ -167,16 +167,24 @@ function SendButton() {
     const msgId = uuidv4();
     setUserInput("");
     const { reader, decoder } = await streamMockResponse(userInput, chatId);
+    let buffer = "";
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
-      const chunk = decoder.decode(value);
-      try {
-        const obj = JSON.parse(chunk);
-        if(chatId === "") setChatId(obj.chat_id);
-        addAssistantMessage(msgId, obj);
-      } catch(err) {
-        console.log("Couldn't parse chunk from backend", err);
+      const chunk = decoder.decode(value, {stream: true});
+      buffer += chunk;
+      let lines = buffer.split(/\r?\n/);
+      buffer = lines.pop()!
+      for (let line of lines) {
+        try {
+          const obj = JSON.parse(line);
+          if(chatId === "") setChatId(obj.chat_id);
+          addAssistantMessage(msgId, obj);
+          console.log("chunk", chunk);
+        } catch(err) {
+          console.warn("Couldn't parse chunk from backend", err);
+          console.warn("chunk", chunk);
+        }
       }
     }
   };

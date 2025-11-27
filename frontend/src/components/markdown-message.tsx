@@ -1,5 +1,7 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 interface MarkdownMessageProps {
   text: string;
@@ -49,6 +51,30 @@ export function MarkdownMessage({ text }: MarkdownMessageProps) {
         td: ({ node, ...props }) => (
           <td className="border border-gray-700 px-2 py-1" {...props} />
         ),
+        code({ inline, className, children, ...props }) {
+          const match = /language-(\w+)/.exec(className || "");
+          if (!inline && match) {
+            return (
+              <SyntaxHighlighter
+                language={match[1]}
+                style={oneDark}
+                customStyle={{
+                  borderRadius: "8px",
+                  padding: "12px",
+                  fontSize: "14px",
+                  margin: "12px",
+                }}
+              >
+                {String(children).replace(/\n$/, "")}
+              </SyntaxHighlighter>
+            );
+          }
+          return (
+            <code className="bg-gray-800 text-gray-200 px-1 py-0.5 rounded">
+              {children}
+            </code>
+          );
+        },
         pre: ({node, ...props}) => (
           <pre className="mx-2 my-4" {...props}/>
         )
