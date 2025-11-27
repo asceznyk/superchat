@@ -157,6 +157,7 @@ function SendButton() {
   const setChatId = useChatStore((s) => s.setChatId);
   const addUserMessage = useChatStore((s) => s.addUserMessage);
   const addAssistantMessage = useChatStore((s) => s.addAssistantMessage);
+  const addAssistantMsgChunk = useChatStore((s) => s.addAssistantMsgChunk);
   const handleSend = async () => {
     if (!userInput.trim()) return;
     addUserMessage({
@@ -164,8 +165,12 @@ function SendButton() {
       role: "user",
       msgBody: userInput,
     });
-    const msgId = uuidv4();
     setUserInput("");
+    addAssistantMessage({
+      id: uuidv4(),
+      role: "assistant",
+      msg_body: "",
+    })
     const { reader, decoder } = await streamMockResponse(userInput, chatId);
     let buffer = "";
     while (true) {
@@ -179,7 +184,7 @@ function SendButton() {
         try {
           const obj = JSON.parse(line);
           if(chatId === "") setChatId(obj.chat_id);
-          addAssistantMessage(msgId, obj);
+          addAssistantMsgChunk(obj);
           console.log("chunk", chunk);
         } catch(err) {
           console.warn("Couldn't parse chunk from backend", err);

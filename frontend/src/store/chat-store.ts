@@ -13,7 +13,8 @@ interface ChatState {
   setUserInput: (text: string) => void;
   messageHistory: ChatMessage[];
   addUserMessage: (msg: ChatMessage) => void;
-  addAssistantMessage: (id: string, msg: ChatMessage) => void;
+  addAssistantMessage: (msg: ChatMessage) => void;
+  addAssistantMsgChunk: (msg: ChatMessage) => void;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -26,22 +27,24 @@ export const useChatStore = create<ChatState>((set) => ({
     set((state) => ({
       messageHistory: [...state.messageHistory, msg],
     })),
-  addAssistantMessage: (id, chunk) =>
+  addAssistantMessage: (chunk) =>
     set((state) => {
-      const idx = state.messageHistory.findIndex((m) => m.id === id);
-      if (idx !== -1) {
-        const newHistory = state.messageHistory.map((m, i) =>
-          i === idx ? { ...m, msgBody: m.msgBody + chunk.msg_body } : m
-        );
-        return { messageHistory: newHistory };
-      } else {
-        return {
-          messageHistory: [
-            ...state.messageHistory,
-            { id, role: "assistant", msgBody: chunk.msg_body },
-          ],
-        };
+      return {
+        messageHistory: [
+          ...state.messageHistory,
+          { id: chunk.id, role: chunk.role, msgBody: chunk.msg_body },
+        ]
       }
+    }),
+  addAssistantMsgChunk: (chunk) =>
+    set((state) => {
+      const lastIndex = state.messageHistory.length-1;
+      const updatedHistory = state.messageHistory.map((msg, idx) =>
+        idx === lastIndex
+        ? { ...msg, msgBody: msg.msgBody + chunk.msg_body }
+        : msg
+      );
+      return { messageHistory: updatedHistory };
     }),
 }));
 
