@@ -9,8 +9,8 @@ export async function getRoot() {
   return res.data;
 }
 
-export async function streamMockResponse(msgBody:string, chatId:string="") {
-  const res = await fetch("/api/mock/", {
+export async function streamChatResponse(msgBody:string, chatId:string="") {
+  const res = await fetch("/api/chat/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(

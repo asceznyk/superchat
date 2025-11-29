@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MarkdownMessage } from "@/components/markdown-message"
 
+import { CHAT_CONFIG } from "@/config/chat"
 import { useChatStore } from "@/store/chat-store";
-import { streamMockResponse } from "@/api/fetch";
+import { streamChatResponse } from "@/api/fetch";
 
 interface TypographyH3LinkProps {
   text: string;
@@ -72,6 +73,7 @@ export function ChatWindow(
     w-fit break-words whitespace-normal max-w-[100%] bg-gray-900
     text-white p-3 rounded-xl mr-auto mb-4
   `;
+  const lastChildPTagClass = "[&>p:last-child]:mb-0";
   return (
     <div
       ref={containerRef}
@@ -88,7 +90,10 @@ export function ChatWindow(
       {messageHistory.map((m) => (
         <div
           key={m.id}
-          className={m.role === "user" ? userBubbleClass : assistantBubbleClass}
+          className={
+            lastChildPTagClass +
+            (m.role === "user" ? userBubbleClass : assistantBubbleClass)
+          }
         >
           <MarkdownMessage text={m.msgBody}/>
         </div>
@@ -158,8 +163,12 @@ function SendButton() {
   const addUserMessage = useChatStore((s) => s.addUserMessage);
   const addAssistantMessage = useChatStore((s) => s.addAssistantMessage);
   const addAssistantMsgChunk = useChatStore((s) => s.addAssistantMsgChunk);
+  const isStreaming = useChatStore((s) => s.isStreaming);
+  const setIsStreaming = useChatStore((s) => s.setIsStreaming);
+  const messageHistory = useChatStore((s) => s.messageHistory);
   const handleSend = async () => {
-    if (!userInput.trim()) return;
+    if (!userInput.trim() || messageHistory.length >= CHAT_CONFIG.MAX_MESSAGES)
+      return;
     addUserMessage({
       id: uuidv4(),
       role: "user",
@@ -171,36 +180,59 @@ function SendButton() {
       role: "assistant",
       msg_body: "",
     })
-    const { reader, decoder } = await streamMockResponse(userInput, chatId);
-    let buffer = "";
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      const chunk = decoder.decode(value, {stream: true});
-      buffer += chunk;
-      let lines = buffer.split(/\r?\n/);
-      buffer = lines.pop()!
-      for (let line of lines) {
-        try {
-          const obj = JSON.parse(line);
-          if(chatId === "") setChatId(obj.chat_id);
-          addAssistantMsgChunk(obj);
-          console.log("chunk", chunk);
-        } catch(err) {
-          console.warn("Couldn't parse chunk from backend", err);
-          console.warn("chunk", chunk);
+    try {
+      const { reader, decoder } = await streamChatResponse(userInput, chatId);
+      setIsStreaming(true);
+      let buffer = "";
+      while (true) {
+        const { value, done } = await reader.read();
+        const chunk = decoder.decode(value, {stream: true});
+        if (done) {
+          console.log(`decoded part ${chunk}`);
+          break;
+        };
+        buffer += chunk;
+        let lines = buffer.split(/\r?\n/);
+        buffer = lines.pop()!
+        for (let line of lines) {
+          try {
+            const obj = JSON.parse(line);
+            if(chatId === "") setChatId(obj.chat_id);
+            addAssistantMsgChunk(obj);
+            console.log("chunk", chunk);
+          } catch(err) {
+            console.warn("Couldn't parse chunk from backend", err);
+            console.warn("chunk", chunk);
+          }
         }
       }
+      setIsStreaming(false);
+    } catch(err) {
+      console.error('error from server?', err);
     }
   };
+  const handleStop = () => {
+    return;
+  }
   return (
     <div className="flex items-end">
-      <Button
-        className="rounded-full cursor-pointer h-10 w-10 p-0 ml-2"
-        onClick={handleSend}
-      >
-        <ArrowUp />
-      </Button>
+      {
+        isStreaming ? (
+          <Button
+            className="rounded-full cursor-pointer h-10 w-10 p-0 ml-2"
+            onClick={handleStop}
+          >
+            <Square />
+          </Button>
+        ) : (
+          <Button
+            className="rounded-full cursor-pointer h-10 w-10 p-0 ml-2"
+            onClick={handleSend}
+          >
+            <ArrowUp />
+          </Button>
+        )
+      }
     </div>
   );
 }

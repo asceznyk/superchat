@@ -20,7 +20,6 @@ app.add_middleware(
 )
 
 app.include_router(chat.router, prefix="/chat", tags=["chat"])
-app.include_router(mock.router, prefix="/mock", tags=["mock"])
 
 @app.get("/", response_model=states.AIResponse)
 async def root() -> JSONResponse:

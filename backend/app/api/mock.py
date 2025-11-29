@@ -4,11 +4,11 @@ import asyncio
 from fastapi.responses import StreamingResponse
 from fastapi import APIRouter
 
-from app.models.states import DummyRequest, AIChunkResponse
+from app.models.states import ChatRequest, AIChunkResponse
 
 router = APIRouter()
 
-async def dummy_response(chat_id:str):
+async def dummy_call(dummy_req:ChatRequest):
   md_text_sample = """
 | Month    | Savings |  Fuck |
 | -------- | ------- | ------|
@@ -51,12 +51,12 @@ def hello_world():
     yield f"{data.model_dump_json()}\n".encode("utf-8")
 
 @router.post("/")
-async def dummy(dummy_req:DummyRequest):
+async def dummy(dummy_req:ChatRequest):
   chat_id = dummy_req.chat_id
   if not dummy_req.chat_id:
-    chat_id = str(uuid.uuid4())
+    dummy_req.chat_id = str(uuid.uuid4())
   return StreamingResponse(
-    dummy_response(chat_id),
+    dummy_call(dummy_req),
     media_type="text/event-stream"
   )
 

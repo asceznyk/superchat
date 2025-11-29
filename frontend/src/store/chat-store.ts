@@ -15,6 +15,8 @@ interface ChatState {
   addUserMessage: (msg: ChatMessage) => void;
   addAssistantMessage: (msg: ChatMessage) => void;
   addAssistantMsgChunk: (msg: ChatMessage) => void;
+  isStreaming: boolean;
+  setIsStreaming: (v: boolean) => void;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -44,8 +46,10 @@ export const useChatStore = create<ChatState>((set) => ({
         ? { ...msg, msgBody: msg.msgBody + chunk.msg_body }
         : msg
       );
-      return { messageHistory: updatedHistory };
+      return { messageHistory: updatedHistory }
     }),
+  isStreaming: false,
+  setIsStreaming: (v) => set({ isStreaming: v })
 }));
 
 
