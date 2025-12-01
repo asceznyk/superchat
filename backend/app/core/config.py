@@ -14,6 +14,8 @@ load_dotenv(ENV_PATH)
 class Settings(BaseSettings):
   APP_NAME:str = "superchat"
   OPENAI_API_KEY:str = os.getenv("OPENAI_API_KEY")
-  MAX_CHAT_MSGS:int = 4
+  MAX_CHAT_MSGS:int = 10
+  CHAT_AUTH_TTL:int = 30 * 24 * 60 * 60
+  CHAT_GUEST_TTL:int = 60 * 60
 
 

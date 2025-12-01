@@ -19,17 +19,16 @@ openai_client = OpenAI(
 
 async def get_chat_response(chat_id:str, is_auth:bool, chat_history:List[str]):
   messages = convert_to_openai_msgs(chat_history)
-  stream = openai_client.chat.completions.create(
+  stream = openai_client.responses.create(
     model = "gpt-4o",
-    messages = messages,
+    input = messages,
     stream = True,
     temperature = 0
   )
-  full_text = ""
-  for chunk in stream:
-    if not chunk.choices or not chunk.choices[0].delta.content:
-      continue
-    text = chunk.choices[0].delta.content
+  full_text, text = "", ""
+  for event in stream:
+    if event.type == "response.output_text.delta":
+      text = event.delta
     data = AIChunkResponse(
       role = "assistant",
       chat_id = chat_id,

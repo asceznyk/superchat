@@ -8,7 +8,8 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from app.core.config import Settings
 from app.core.utils import get_limit_response
 from app.models.states import ChatRequest
-from app.services.dummy_client import get_chat_response
+
+from app.services.openai_client import get_chat_response
 from app.services.redis_client import add_message, get_history
 
 settings = Settings()
@@ -25,10 +26,11 @@ def get_user_from_token(auth:Optional[str]=Header(None)) -> Dict[str,str]:
 async def chat(
   chat_req:ChatRequest, user=Depends(get_user_from_token)
 ) -> StreamingResponse:
-  if not chat_req.chat_id:
-    chat_req.chat_id = str(uuid.uuid4())
-  chat_id = chat_req.chat_id
   is_auth = user["authenticated"]
+  if not chat_req.chat_id:
+    logged = "auth" if is_auth else "guest"
+    chat_req.chat_id = f"chat:{logged}:{str(uuid.uuid4())}"
+  chat_id = chat_req.chat_id
   if not is_auth:
     await add_message(chat_id, chat_req)
     chat_history = await get_history(chat_id)

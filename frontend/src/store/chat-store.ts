@@ -17,6 +17,7 @@ interface ChatState {
   addAssistantMsgChunk: (msg: ChatMessage) => void;
   isStreaming: boolean;
   setIsStreaming: (v: boolean) => void;
+  abortController: AbortController | null;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -49,7 +50,9 @@ export const useChatStore = create<ChatState>((set) => ({
       return { messageHistory: updatedHistory }
     }),
   isStreaming: false,
-  setIsStreaming: (v) => set({ isStreaming: v })
+  setIsStreaming: (v) => set({ isStreaming: v }),
+  abortController: null,
+  setAbortController: (c) => set({ abortController: c })
 }));
 
 

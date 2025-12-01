@@ -70,8 +70,8 @@ export function ChatWindow(
     text-white p-3 rounded-xl ml-auto mb-4
   `;
   const assistantBubbleClass = `
-    w-fit break-words whitespace-normal max-w-[100%] bg-gray-900
-    text-white p-3 rounded-xl mr-auto mb-4
+    w-fit break-words whitespace-normal max-w-[100%]
+    text-white p-3 mr-auto mb-4
   `;
   const lastChildPTagClass = "[&>p:last-child]:mb-0";
   return (
@@ -163,12 +163,16 @@ function SendButton() {
   const addUserMessage = useChatStore((s) => s.addUserMessage);
   const addAssistantMessage = useChatStore((s) => s.addAssistantMessage);
   const addAssistantMsgChunk = useChatStore((s) => s.addAssistantMsgChunk);
+  const messageHistory = useChatStore((s) => s.messageHistory);
   const isStreaming = useChatStore((s) => s.isStreaming);
   const setIsStreaming = useChatStore((s) => s.setIsStreaming);
-  const messageHistory = useChatStore((s) => s.messageHistory);
+  const abortController = useChatStore((s) => s.abortController);
+  const setAbortController = useChatStore((s) => s.setAbortController);
   const handleSend = async () => {
     if (!userInput.trim() || messageHistory.length >= CHAT_CONFIG.MAX_MESSAGES)
       return;
+    const ac = new AbortController();
+    setAbortController(ac);
     addUserMessage({
       id: uuidv4(),
       role: "user",
@@ -179,9 +183,18 @@ function SendButton() {
       id: uuidv4(),
       role: "assistant",
       msg_body: "",
-    })
+    });
+    let reader, decoder;
     try {
-      const { reader, decoder } = await streamChatResponse(userInput, chatId);
+      const res = await streamChatResponse(userInput, chatId, ac.signal);
+      reader = res.reader;
+      decoder = res.decoder;
+    } catch (err) {
+      console.warn("Request aborted or failed", err);
+      setIsStreaming(false);
+      return;
+    }
+    try {
       setIsStreaming(true);
       let buffer = "";
       while (true) {
@@ -199,7 +212,6 @@ function SendButton() {
             const obj = JSON.parse(line);
             if(chatId === "") setChatId(obj.chat_id);
             addAssistantMsgChunk(obj);
-            console.log("chunk", chunk);
           } catch(err) {
             console.warn("Couldn't parse chunk from backend", err);
             console.warn("chunk", chunk);
@@ -212,6 +224,9 @@ function SendButton() {
     }
   };
   const handleStop = () => {
+    abortController?.abort();
+    setIsStreaming(false);
+    setAbortController(null);
     return;
   }
   return (
@@ -277,7 +292,7 @@ export function ChatFooter({onHeightChange}: ChatFooterProps) {
         </div>
       </div>
       <div className="flex justify-center mb-[4px]">
-        <span className="text-sm">
+        <span className="text-xs">
           Superchat is a ChatGPT wrapper - it can make mistakes
         </span>
       </div>

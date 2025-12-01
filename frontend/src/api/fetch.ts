@@ -9,7 +9,9 @@ export async function getRoot() {
   return res.data;
 }
 
-export async function streamChatResponse(msgBody:string, chatId:string="") {
+export async function streamChatResponse(
+  msgBody:string, chatId:string, signal
+) {
   const res = await fetch("/api/chat/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -20,6 +22,7 @@ export async function streamChatResponse(msgBody:string, chatId:string="") {
         msg_body: msgBody,
       }
     ),
+    signal
   });
   if (!res.ok) throw new Error("Request failed");
   const reader = res.body!.getReader();
