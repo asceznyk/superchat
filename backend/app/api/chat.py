@@ -7,10 +7,14 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 
 from app.core.config import Settings
 from app.core.utils import get_limit_response
+
 from app.models.states import ChatRequest
 
-from app.services.openai_client import get_chat_response
 from app.services.redis_client import add_message, get_history
+
+#from app.services.dummy_client import get_chat_response
+#from app.services.openai_client import get_chat_response
+import app.services.google_client as google_client
 
 settings = Settings()
 
@@ -40,7 +44,7 @@ async def chat(
         media_type="text/event-stream"
       )
   return StreamingResponse(
-    get_chat_response(chat_id, is_auth, chat_history),
+    google_client.get_chat_response(chat_id, is_auth, chat_history),
     media_type="text/event-stream"
   )
 

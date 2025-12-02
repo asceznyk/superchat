@@ -10,7 +10,7 @@ export async function getRoot() {
 }
 
 export async function streamChatResponse(
-  msgBody:string, chatId:string, signal
+  msgBody:string, chatId:string, signal:AbortController=null
 ) {
   const res = await fetch("/api/chat/", {
     method: "POST",

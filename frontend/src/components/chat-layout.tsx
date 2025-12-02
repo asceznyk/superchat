@@ -16,7 +16,7 @@ interface TypographyH3LinkProps {
 function TypographyH3Link({ text }: TypographyH3LinkProps) {
   return (
     <h3 className="text-2xl font-semibold">
-      <a href="/" className="text-blue-600">{text}</a>
+      <a href="/">{text}</a>
     </h3>
   );
 }
@@ -191,7 +191,6 @@ function SendButton() {
       decoder = res.decoder;
     } catch (err) {
       console.warn("Request aborted or failed", err);
-      setIsStreaming(false);
       return;
     }
     try {
@@ -200,10 +199,8 @@ function SendButton() {
       while (true) {
         const { value, done } = await reader.read();
         const chunk = decoder.decode(value, {stream: true});
-        if (done) {
-          console.log(`decoded part ${chunk}`);
-          break;
-        };
+        console.log(`chunk = ${chunk}`);
+        if (done) break;
         buffer += chunk;
         let lines = buffer.split(/\r?\n/);
         buffer = lines.pop()!
@@ -213,8 +210,8 @@ function SendButton() {
             if(chatId === "") setChatId(obj.chat_id);
             addAssistantMsgChunk(obj);
           } catch(err) {
-            console.warn("Couldn't parse chunk from backend", err);
-            console.warn("chunk", chunk);
+            console.warn("Couldn't parse line from backend", err);
+            console.warn("line", line);
           }
         }
       }
@@ -293,7 +290,7 @@ export function ChatFooter({onHeightChange}: ChatFooterProps) {
       </div>
       <div className="flex justify-center mb-[4px]">
         <span className="text-xs">
-          Superchat is a ChatGPT wrapper - it can make mistakes
+          Superchat is a LLM wrapper - it can make mistakes
         </span>
       </div>
     </div>

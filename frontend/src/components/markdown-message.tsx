@@ -40,7 +40,11 @@ export function MarkdownMessage({ text }: MarkdownMessageProps) {
           <li className="my-0" {...props} />
         ),
         table: ({ node, ...props }) => (
-          <table className="w-full border-collapse my-2 text-left" {...props} />
+          <div className="overflow-x-scroll ">
+            <table
+              className="w-full border-collapse my-2 text-left" {...props}
+            />
+          </div>
         ),
         th: ({ node, ...props }) => (
           <th

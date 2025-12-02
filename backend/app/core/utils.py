@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 
 import asyncio
 import json
@@ -33,11 +33,11 @@ def hello_world():
     print("Hello, Markdown!")
 ```
 
-| Month    | Savings |  Fuck | Beer |
-| -------- | ------- | ----- |----- |
-| January  | $250    | Y     | Y    |
-| February | $80     | N     | N    |
-| March    | $420    | Y     | Y    |
+| Month    | Savings |  Fuck | Beer | Month    | Savings |  Fuck | Beer |
+| -------- | ------- | ----- |----- | -------- | ------- | ----- |----- |
+| January  | $250    | Y     | Y    | January  | $250    | Y     | Y    |
+| February | $80     | N     | N    | February | $80     | N     | N    |
+| March    | $420    | Y     | Y    | March    | $420    | Y     | Y    |
   """,
   """
   ```
@@ -51,7 +51,7 @@ def hello_world():
   """
 ]
 
-def convert_to_openai_msgs(chat_history:List[str]):
+def convert_to_openai_msgs(chat_history:List[str]) -> List[Dict]:
   messages = []
   for msg_str in chat_history:
     msg_json = json.loads(msg_str)
@@ -59,6 +59,18 @@ def convert_to_openai_msgs(chat_history:List[str]):
     messages.append({
       "role": role,
       "content": msg_json["msg_body"]
+    })
+  return messages
+
+def convert_to_gemini_msgs(chat_history:List[str]) -> List[Dict]:
+  messages = []
+  for msg_str in chat_history:
+    msg_json = json.loads(msg_str)
+    role = msg_json["role"]
+    if role == "assistant": role = "model"
+    messages.append({
+      "role": role,
+      "parts": [{"text": msg_json["msg_body"]}]
     })
   return messages
 

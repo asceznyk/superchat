@@ -1,31 +1,37 @@
 from typing import List, Union
 
-from openai import OpenAI
+from google import genai
 
 from app.models.states import ChatRequest, AIChunkResponse, AIResponse
 from app.services.redis_client import add_message
 
 from app.core.config import Settings
-from app.core.utils import convert_to_openai_msgs
+from app.core.utils import convert_to_gemini_msgs
 
 settings = Settings()
 
-client = OpenAI(
-  api_key = settings.OPENAI_API_KEY
+client = genai.Client(
+  api_key = settings.GEMINI_API_KEY
 )
 
-async def get_chat_response(chat_id:str, is_auth:bool, chat_history:List[str]):
-  messages = convert_to_openai_msgs(chat_history)
-  stream = client.responses.create(
-    model = "gpt-4o-mini",
-    input = messages,
-    stream = True,
-    temperature = 0
+async def get_chat_response(
+  chat_id:str,
+  is_auth:bool,
+  chat_history:List[str],
+  model:str="gemini-2.5-flash"
+):
+  messages = convert_to_gemini_msgs(chat_history)
+  stream = client.models.generate_content_stream(
+    model = model,
+    config = genai.types.GenerateContentConfig(
+      system_instruction=settings.GEMINI_SYSTEM_PROMPT
+    ),
+    contents = messages,
   )
   full_text, text = "", ""
-  for event in stream:
-    if event.type == "response.output_text.delta":
-      text = event.delta
+  for chunk in stream:
+    text = chunk.text
+    if not text: continue
     data = AIChunkResponse(
       role = "assistant",
       chat_id = chat_id,
@@ -41,6 +47,7 @@ async def get_chat_response(chat_id:str, is_auth:bool, chat_history:List[str]):
     authenticated = is_auth
   )
   await add_message(chat_id, ai_resp)
+
 
 
 

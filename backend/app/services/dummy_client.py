@@ -9,7 +9,7 @@ from app.services.redis_client import add_message
 
 async def get_chat_response(chat_id:str, is_auth:bool, chat_history:List[str]):
   full_text = ""
-  for text in md_text_samples[random.randint(0, len(md_text_samples)-1)]:
+  for text in md_text_samples[0]: #md_text_samples[random.randint(0, len(md_text_samples)-1)]:
     data = AIChunkResponse(
       role = "assistant",
       chat_id = chat_id,
