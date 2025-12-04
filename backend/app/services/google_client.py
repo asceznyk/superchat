@@ -15,12 +15,11 @@ client = genai.Client(
 )
 
 async def get_chat_response(
-  chat_id:str,
-  is_auth:bool,
-  chat_history:List[str],
+  thread_id:str,
+  history:List[str],
   model:str="gemini-2.5-flash"
 ):
-  messages = convert_to_gemini_msgs(chat_history)
+  messages = convert_to_gemini_msgs(history)
   stream = client.models.generate_content_stream(
     model = model,
     config = genai.types.GenerateContentConfig(
@@ -34,19 +33,15 @@ async def get_chat_response(
     if not text: continue
     data = AIChunkResponse(
       role = "assistant",
-      chat_id = chat_id,
-      msg_body = text,
-      authenticated = is_auth
+      msg_body = text
     )
     full_text += text
     yield f"{data.model_dump_json()}\n\n"
   ai_resp = AIResponse(
     role = "assistant",
-    chat_id = chat_id,
-    msg_body = full_text,
-    authenticated = is_auth
+    msg_body = full_text
   )
-  await add_message(chat_id, ai_resp)
+  await add_message(thread_id, ai_resp)
 
 
 

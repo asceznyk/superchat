@@ -2,21 +2,19 @@ from typing import Optional
 from pydantic import BaseModel
 
 class ChatRequest(BaseModel):
-  role:Optional[str]
-  chat_id:Optional[str]
+  role:str
   msg_body:str
+
+class ChatIdResponse(BaseModel):
+  chat_id:str
 
 class AIChunkResponse(BaseModel):
   role:str
-  chat_id:str
   msg_body:str
-  authenticated:bool
 
 class AIResponse(BaseModel):
   role:str
-  chat_id:str
   msg_body:Optional[str]
-  authenticated:bool
 
 class AILimitResponse(BaseModel):
   msg_body:str

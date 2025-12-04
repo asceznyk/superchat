@@ -51,9 +51,9 @@ def hello_world():
   """
 ]
 
-def convert_to_openai_msgs(chat_history:List[str]) -> List[Dict]:
+def convert_to_openai_msgs(history:List[str]) -> List[Dict]:
   messages = []
-  for msg_str in chat_history:
+  for msg_str in history:
     msg_json = json.loads(msg_str)
     role =  "user" if msg_json["role"] != "assistant" else "assistant"
     messages.append({
@@ -62,9 +62,9 @@ def convert_to_openai_msgs(chat_history:List[str]) -> List[Dict]:
     })
   return messages
 
-def convert_to_gemini_msgs(chat_history:List[str]) -> List[Dict]:
+def convert_to_gemini_msgs(history:List[str]) -> List[Dict]:
   messages = []
-  for msg_str in chat_history:
+  for msg_str in history:
     msg_json = json.loads(msg_str)
     role = msg_json["role"]
     if role == "assistant": role = "model"
@@ -74,11 +74,10 @@ def convert_to_gemini_msgs(chat_history:List[str]) -> List[Dict]:
     })
   return messages
 
-async def get_limit_response(chat_id:str, is_auth:bool):
+async def get_limit_response(is_auth:bool):
   for text in TEMPTLATE_LIMIT_MSG:
     data = AIChunkResponse(
       role = "assistant",
-      chat_id = chat_id,
       msg_body = text,
       authenticated = is_auth
     )

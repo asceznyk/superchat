@@ -55,6 +55,7 @@ export function ChatWindow(
   {headerHeight, footerHeight}: ChatWindowProps
 ) {
   const messageHistory = useChatStore((s) => s.messageHistory);
+  const hasResponded = useChatStore((s) => s.hasResponded);
   const containerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = containerRef.current;
@@ -87,7 +88,7 @@ export function ChatWindow(
       <div
         className="max-w-[800px] mx-auto"
       >
-      {messageHistory.map((m) => (
+      {messageHistory.map((m, i) => (
         <div
           key={m.id}
           className={
@@ -95,7 +96,30 @@ export function ChatWindow(
             (m.role === "user" ? userBubbleClass : assistantBubbleClass)
           }
         >
-          <MarkdownMessage text={m.msgBody}/>
+          {
+            hasResponded === false && m.role === "assistant" && i === (messageHistory.length-1) ? (
+              <svg
+                width="30"
+                height="10"
+                viewBox="0 0 120 30"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                className="opacity-70"
+              >
+                <circle cx="15" cy="15" r="15">
+                  <animate attributeName="opacity" values="0;1;0" dur="1s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="60" cy="15" r="15">
+                  <animate attributeName="opacity" values="0;1;0" dur="1s" begin="0.2s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="105" cy="15" r="15">
+                  <animate attributeName="opacity" values="0;1;0" dur="1s" begin="0.4s" repeatCount="indefinite"/>
+                </circle>
+              </svg>
+            ) : (
+              <MarkdownMessage text={m.msgBody}/>
+            )
+          }
         </div>
       ))}
       </div>
@@ -168,9 +192,12 @@ function SendButton() {
   const setIsStreaming = useChatStore((s) => s.setIsStreaming);
   const abortController = useChatStore((s) => s.abortController);
   const setAbortController = useChatStore((s) => s.setAbortController);
+  const hasResponded = useChatStore((s) => s.hasResponded);
+  const setHasResponded = useChatStore((s) => s.setHasResponded);
   const handleSend = async () => {
     if (!userInput.trim() || messageHistory.length >= CHAT_CONFIG.MAX_MESSAGES)
       return;
+    setHasResponded(false);
     const ac = new AbortController();
     setAbortController(ac);
     addUserMessage({
@@ -200,6 +227,7 @@ function SendButton() {
         const { value, done } = await reader.read();
         const chunk = decoder.decode(value, {stream: true});
         console.log(`chunk = ${chunk}`);
+        if (chunk) setHasResponded(true);
         if (done) break;
         buffer += chunk;
         let lines = buffer.split(/\r?\n/);
@@ -234,7 +262,13 @@ function SendButton() {
             className="rounded-full cursor-pointer h-10 w-10 p-0 ml-2"
             onClick={handleStop}
           >
-            <Square />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <rect x="0" y="0" width="20" rx="3" height="20" />
+            </svg>
           </Button>
         ) : (
           <Button

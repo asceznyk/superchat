@@ -14,7 +14,7 @@ client = OpenAI(
   api_key = settings.OPENAI_API_KEY
 )
 
-async def get_chat_response(chat_id:str, is_auth:bool, chat_history:List[str]):
+async def get_chat_response(thread_id:str, chat_history:List[str]):
   messages = convert_to_openai_msgs(chat_history)
   stream = client.responses.create(
     model = "gpt-4o-mini",
@@ -28,19 +28,15 @@ async def get_chat_response(chat_id:str, is_auth:bool, chat_history:List[str]):
       text = event.delta
     data = AIChunkResponse(
       role = "assistant",
-      chat_id = chat_id,
       msg_body = text,
-      authenticated = is_auth
     )
     full_text += text
     yield f"{data.model_dump_json()}\n\n"
   ai_resp = AIResponse(
     role = "assistant",
-    chat_id = chat_id,
     msg_body = full_text,
-    authenticated = is_auth
   )
-  await add_message(chat_id, ai_resp)
+  await add_message(thread_id, ai_resp)
 
 
 
