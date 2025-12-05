@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
 
 interface ChatMessage {
@@ -12,6 +13,7 @@ interface ChatState {
   userInput: string;
   setUserInput: (text: string) => void;
   messageHistory: ChatMessage[];
+  setMessageHistory: (history: ChatMessage[]) => void;
   addUserMessage: (msg: ChatMessage) => void;
   addAssistantMessage: (msg: ChatMessage) => void;
   addAssistantMsgChunk: (msg: ChatMessage) => void;
@@ -27,6 +29,14 @@ export const useChatStore = create<ChatState>((set) => ({
   chatId: "",
   setChatId: (text) => set({ chatId: text }),
   messageHistory: [],
+  setMessageHistory: (history) =>
+    set({
+      messageHistory: history.map((msg) => ({
+        id: uuidv4(),
+        role: msg.role,
+        msgBody: msg.msg_body,
+      })),
+    }),
   addUserMessage: (msg) =>
     set((state) => ({
       messageHistory: [...state.messageHistory, msg],
@@ -54,7 +64,7 @@ export const useChatStore = create<ChatState>((set) => ({
   setIsStreaming: (v) => set({ isStreaming: v }),
   abortController: null,
   setAbortController: (c) => set({ abortController: c }),
-  hasResponded: false,
+  hasResponded: true,
   setHasResponded: (v) => set({ hasResponded: v })
 }));
 

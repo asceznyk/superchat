@@ -1,13 +1,16 @@
-import { useState, useRef, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { ArrowUp, Square } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { MarkdownMessage } from "@/components/markdown-message"
+
+import { useChatStore } from "@/store/chat-store";
+import { streamChatResponse, createChatId } from "@/api/chat-service";
 
 import { CHAT_CONFIG } from "@/config/chat"
-import { useChatStore } from "@/store/chat-store";
-import { streamChatResponse } from "@/api/fetch";
+import { Button } from "@/components/ui/button";
+import MarkdownMessage from "@/components/markdown-message"
+import TypingIndicator from "@/components/typing-indicator"
 
 interface TypographyH3LinkProps {
   text: string;
@@ -97,27 +100,11 @@ export function ChatWindow(
           }
         >
           {
-            hasResponded === false && m.role === "assistant" && i === (messageHistory.length-1) ? (
-              <svg
-                width="30"
-                height="10"
-                viewBox="0 0 120 30"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                className="opacity-70"
-              >
-                <circle cx="15" cy="15" r="15">
-                  <animate attributeName="opacity" values="0;1;0" dur="1s" repeatCount="indefinite"/>
-                </circle>
-                <circle cx="60" cy="15" r="15">
-                  <animate attributeName="opacity" values="0;1;0" dur="1s" begin="0.2s" repeatCount="indefinite"/>
-                </circle>
-                <circle cx="105" cy="15" r="15">
-                  <animate attributeName="opacity" values="0;1;0" dur="1s" begin="0.4s" repeatCount="indefinite"/>
-                </circle>
-              </svg>
+            !hasResponded && m.role === "assistant" && i === (messageHistory.length-1) ?
+            (
+              <TypingIndicator />
             ) : (
-              <MarkdownMessage text={m.msgBody}/>
+              <MarkdownMessage text={m.msgBody} />
             )
           }
         </div>
@@ -194,9 +181,16 @@ function SendButton() {
   const setAbortController = useChatStore((s) => s.setAbortController);
   const hasResponded = useChatStore((s) => s.hasResponded);
   const setHasResponded = useChatStore((s) => s.setHasResponded);
+  const navigate = useNavigate();
   const handleSend = async () => {
     if (!userInput.trim() || messageHistory.length >= CHAT_CONFIG.MAX_MESSAGES)
       return;
+    let cid = chatId;
+    if (!cid) {
+      cid = await createChatId();
+      setChatId(cid);
+      navigate(`/chat/${cid}`);
+    }
     setHasResponded(false);
     const ac = new AbortController();
     setAbortController(ac);
@@ -213,7 +207,7 @@ function SendButton() {
     });
     let reader, decoder;
     try {
-      const res = await streamChatResponse(userInput, chatId, ac.signal);
+      const res = await streamChatResponse(userInput, cid, ac.signal);
       reader = res.reader;
       decoder = res.decoder;
     } catch (err) {
@@ -235,7 +229,6 @@ function SendButton() {
         for (let line of lines) {
           try {
             const obj = JSON.parse(line);
-            if(chatId === "") setChatId(obj.chat_id);
             addAssistantMsgChunk(obj);
           } catch(err) {
             console.warn("Couldn't parse line from backend", err);

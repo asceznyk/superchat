@@ -7,7 +7,7 @@ interface MarkdownMessageProps {
   text: string;
 }
 
-export function MarkdownMessage({ text }: MarkdownMessageProps) {
+export default function MarkdownMessage({ text }: MarkdownMessageProps) {
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}

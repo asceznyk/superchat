@@ -9,17 +9,29 @@ export async function getRoot() {
   return res.data;
 }
 
+export async function createChatId() {
+  const res = await api.post('/chat', {
+    role: "user",
+    msg_body: "ping"
+  });
+  return res.data.chat_id;
+}
+
+export async function getChatHistory(chatId:string) {
+  const res = await api.get(`/chat/${chatId}`);
+  return res.data;
+}
+
 export async function streamChatResponse(
-  msgBody:string, chatId:string, signal:AbortController=null
+  userInput:string, chatId:string, signal:AbortController=null
 ) {
-  const res = await fetch("/api/chat/", {
+  const res = await fetch(`/api/chat/${chatId}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(
       {
         role: "user",
-        chat_id: chatId,
-        msg_body: msgBody,
+        msg_body: userInput,
       }
     ),
     signal
