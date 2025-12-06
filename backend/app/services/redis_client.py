@@ -12,7 +12,7 @@ redis_client = redis.Redis(host="redis", port=6379, decode_responses=True)
 async def add_message(key:str, message:Union[ChatRequest,AIResponse]):
   ttl = (
     settings.CHAT_GUEST_TTL
-    if key.startswith("chat:guest:")
+    if key.startswith("thread:guest:")
     else settings.CHAT_AUTH_TTL
   )
   async with redis_client.pipeline() as pipe:

@@ -117,9 +117,12 @@ export function ChatWindow(
 interface PromptAreaProps {
   placeholder: string;
   onHeightChange?: (h: number) => void;
+  onEnter? : () => void;
 }
 
-function PromptArea({ placeholder, onHeightChange }: PromptAreaProps) {
+function PromptArea(
+  { placeholder, onHeightChange, onSend }: PromptAreaProps
+) {
   const userInput = useChatStore((s) => s.userInput);
   const setUserInput = useChatStore((s) => s.setUserInput);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -134,6 +137,13 @@ function PromptArea({ placeholder, onHeightChange }: PromptAreaProps) {
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = event.target.value;
     setUserInput(val);
+  };
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (userInput.trim().length === 0) return;
+      onSend();
+    }
   };
   const classSpan = `
     absolute top-2 text-gray-500 pointer-events-none select-none
@@ -152,6 +162,7 @@ function PromptArea({ placeholder, onHeightChange }: PromptAreaProps) {
         ref={textareaRef}
         value={userInput}
         onChange={handleInput}
+        onKeyDown={handleKeyDown}
         className="
           block w-full resize-none
           bg-transparent outline-none
@@ -166,7 +177,63 @@ function PromptArea({ placeholder, onHeightChange }: PromptAreaProps) {
   );
 }
 
-function SendButton() {
+interface SendButtonProps {
+  onSend?: () => void;
+  onStop?: () => void;
+}
+
+function SendButton({ onSend, onStop }: SendButtonProps) {
+  const isStreaming = useChatStore((s) => s.isStreaming);
+  return (
+    <div className="flex items-end">
+      {
+        isStreaming ? (
+          <Button
+            className="rounded-full cursor-pointer h-10 w-10 p-0 ml-2"
+            onClick={onStop}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <rect x="0" y="0" width="20" rx="3" height="20" />
+            </svg>
+          </Button>
+        ) : (
+          <Button
+            className="rounded-full cursor-pointer h-10 w-10 p-0 ml-2"
+            onClick={onSend}
+          >
+            <ArrowUp />
+          </Button>
+        )
+      }
+    </div>
+  );
+}
+
+interface ChatFooterProps {
+  onHeightChange?: (h: number) => void;
+}
+
+export function ChatFooter({onHeightChange}: ChatFooterProps) {
+  const [inputHeight, setInputHeight] = useState(40);
+  const footerRef = useRef<HTMLDivElement>(null);
+  const classTextarea = `
+    flex justify-between items-end border border-solid border-gray-300
+    w-full max-w-[800px] mx-auto gap-2
+    py-2 px-2
+  `;
+  useEffect(() => {
+    const el = footerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(() => {
+      onHeightChange?.(el.offsetHeight);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
   const userInput = useChatStore((s) => s.userInput);
   const setUserInput = useChatStore((s) => s.setUserInput);
   const chatId = useChatStore((s) => s.chatId);
@@ -175,7 +242,6 @@ function SendButton() {
   const addAssistantMessage = useChatStore((s) => s.addAssistantMessage);
   const addAssistantMsgChunk = useChatStore((s) => s.addAssistantMsgChunk);
   const messageHistory = useChatStore((s) => s.messageHistory);
-  const isStreaming = useChatStore((s) => s.isStreaming);
   const setIsStreaming = useChatStore((s) => s.setIsStreaming);
   const abortController = useChatStore((s) => s.abortController);
   const setAbortController = useChatStore((s) => s.setAbortController);
@@ -248,56 +314,6 @@ function SendButton() {
     return;
   }
   return (
-    <div className="flex items-end">
-      {
-        isStreaming ? (
-          <Button
-            className="rounded-full cursor-pointer h-10 w-10 p-0 ml-2"
-            onClick={handleStop}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <rect x="0" y="0" width="20" rx="3" height="20" />
-            </svg>
-          </Button>
-        ) : (
-          <Button
-            className="rounded-full cursor-pointer h-10 w-10 p-0 ml-2"
-            onClick={handleSend}
-          >
-            <ArrowUp />
-          </Button>
-        )
-      }
-    </div>
-  );
-}
-
-interface ChatFooterProps {
-  onHeightChange?: (h: number) => void;
-}
-
-export function ChatFooter({onHeightChange}: ChatFooterProps) {
-  const [inputHeight, setInputHeight] = useState(40);
-  const footerRef = useRef<HTMLDivElement>(null);
-  const classTextarea = `
-    flex justify-between items-end border border-solid border-gray-300
-    w-full max-w-[800px] mx-auto gap-2
-    py-2 px-2
-  `;
-  useEffect(() => {
-    const el = footerRef.current;
-    if (!el) return;
-    const observer = new ResizeObserver(() => {
-      onHeightChange?.(el.offsetHeight);
-    });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-  return (
     <div
       ref={footerRef}
       className="flex fixed bottom-0 bg-background flex-col w-full px-4"
@@ -311,8 +327,9 @@ export function ChatFooter({onHeightChange}: ChatFooterProps) {
           <PromptArea
             placeholder="Ask anything..."
             onHeightChange={setInputHeight}
+            onSend={handleSend}
           />
-          <SendButton />
+          <SendButton onSend={handleSend} onStop={handleStop} />
         </div>
       </div>
       <div className="flex justify-center mb-[4px]">

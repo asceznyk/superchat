@@ -39,9 +39,9 @@ async def converstaion_thread(
   is_auth = user["authenticated"]
   thread_id = f"thread:{"auth" if is_auth else "guest"}:{chat_id}"
   history = await get_history(thread_id)
-  return JSONResponse(content = jsonable_encoder([
-    json.loads(s) for s in history
-  ]))
+  return JSONResponse(content = jsonable_encoder(
+    [json.loads(s) for s in history]
+  ))
 
 @router.post("/{chat_id}", response_model=None)
 async def ai_response(

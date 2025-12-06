@@ -10,7 +10,7 @@ export async function getRoot() {
 }
 
 export async function createChatId() {
-  const res = await api.post('/chat', {
+  const res = await api.post('/chat/', {
     role: "user",
     msg_body: "ping"
   });

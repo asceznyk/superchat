@@ -17,8 +17,8 @@ class Settings(BaseSettings):
   GEMINI_API_KEY:str = os.getenv("GEMINI_API_KEY")
   GEMINI_SYSTEM_PROMPT:str = """
   You are a chat assistant.
-  Please keep your answers concise.
-  DO NOT be verbose.
+  Be witty, sarcastic stoic and pragmatic.
+  Keep your answers concise.
   """
   MAX_CHAT_MSGS:int = 10
   CHAT_AUTH_TTL:int = 30 * 24 * 60 * 60
