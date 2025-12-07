@@ -194,10 +194,10 @@ function SendButton({ onSend, onStop }: SendButtonProps) {
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
+              viewBox="0 0 12 12"
               fill="currentColor"
             >
-              <rect x="0" y="0" width="20" rx="3" height="20" />
+              <rect x="0" y="0" width="12" rx="3" height="12"></rect>
             </svg>
           </Button>
         ) : (
