@@ -1,0 +1,56 @@
+# Routine
+- (09:15 - 10:00) System Design Roadmap - Read 1-3 topics atleast !important
+- (10:30 - 14:30) Work - Diagene app
+- (15:00 - 16:00) Sytems programming - weekly progress
+- (16:30 - 17:30) Sytems programming - weekly progress
+- (19:00 - 21:00) App dev - Superchat - weekly progress 
+- (20:00 - 21:00) Duolingo - 1 checkpoint for each Language 
+- (21:15 - 22:00) Music practice
+
+
+# Logs
+
+- [ ] [Linux Roadmap](https://roadmap.sh/linux)
+
+- [ ] System Design articles
+  - [ ] No caching - Performance Antipatterns
+  - [ ] Mircoservices and SOA
+  - [ ] Operating systems - basics
+  - [ ] Strategies for overcoming performance antipatterns
+
+- [ ] Sytems programming - proxy/webserver
+  - [x] Understand HTTP request parsing
+  - [x] Understand what proxy servers do on HTTP methods
+  - [x] Take notes on request parsing and response generation
+  - [x] Write function for processing config file - defs.h
+  - [ ] Write HTTP buffering to handle partial packets
+  - [ ] Write function for HTTP GET 
+
+- [ ] App dev - Superchat
+  - [x] Copy feature for code blocks
+  - [x] Think/Research about proxy buffering for NGINX
+  - [x] CopyButton to be added to MarkdownMessages
+  - [ ] Split `chat-layout.tsx` into smaller components
+  - [ ] Add test cases for backend
+  - [ ] Add test cases for frontend 
+  - [ ] Manage a dev and prod for Superchat
+  - [ ] Research/Think about organising users and chats - needs more research
+  - [ ] Create login/signup page
+
+
+# Pile
+
+- [ ] Heap memory allocator like `malloc`
+  - [ ] Study different `malloc` algorithms
+  - [ ] Write `malloc` and `free`
+  - [ ] Dump function for printing/showing items
+
+- [ ] Study about all unique Data-Structures
+  - [ ] Skip List
+  - [ ] B-Tree
+  - [ ] Cartesian Tree
+  - [ ] Red-Black Tree
+  - [ ] Splay Tree
+  - [ ] AVL Tree
+  - [ ] KD Tree
+

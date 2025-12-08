@@ -1,10 +1,36 @@
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism"
+
+import CopyButton from "@/components/copy-button"
+
+interface CodeBlockProps {
+  language: string
+  code: string
+}
+
+function CodeBlock({ language, code }: CodeBlockProps) {
+  return (
+    <div className="relative mx-2 my-4 group">
+      <CopyButton text={code} isCode={true} pos="bottom-right" />
+      <SyntaxHighlighter
+        language={language}
+        style={oneDark}
+        customStyle={{
+          borderRadius: "8px",
+          padding: "12px",
+          fontSize: "14px"
+        }}
+      >
+        {code.replace(/\n$/, "")}
+      </SyntaxHighlighter>
+    </div>
+  );
+}
 
 interface MarkdownMessageProps {
-  text: string;
+  text: string
 }
 
 export default function MarkdownMessage({ text }: MarkdownMessageProps) {
@@ -23,12 +49,12 @@ export default function MarkdownMessage({ text }: MarkdownMessageProps) {
         ),
         blockquote: ({ node, ...props }) => (
           <blockquote
-            className="border-l-4 border-gray-600 pl-4 mt-0 mx-2 mb-4 italic text-gray-300"
+            className="border-l-4 border-gray-600 pl-4 mt-0 mb-4 italic text-gray-300"
             {...props}
           />
         ),
         p: ({ node, ...props }) => (
-          <p className="mt-0 mx-2 mb-4 leading-relaxed" {...props} />
+          <p className="mt-0 mb-4 leading-relaxed" {...props} />
         ),
         ul: ({ node, ...props }) => (
           <ul className="list-disc ml-6 mt-0 mb-4" {...props} />
@@ -57,27 +83,14 @@ export default function MarkdownMessage({ text }: MarkdownMessageProps) {
         ),
         code({ inline, className, children, ...props }) {
           const match = /language-(\w+)/.exec(className || "");
-          if (!inline && match) {
+          if (inline || !match) {
             return (
-              <SyntaxHighlighter
-                language={match[1]}
-                style={oneDark}
-                customStyle={{
-                  borderRadius: "8px",
-                  padding: "12px",
-                  fontSize: "14px",
-                  margin: "12px",
-                }}
-              >
-                {String(children).replace(/\n$/, "")}
-              </SyntaxHighlighter>
+              <code className="bg-gray-800 text-gray-200 px-1 py-0.5 rounded">
+                {children}
+              </code>
             );
           }
-          return (
-            <code className="bg-gray-800 text-gray-200 px-1 py-0.5 rounded">
-              {children}
-            </code>
-          );
+          return <CodeBlock language={match[1]} code={String(children)} />;
         },
         pre: ({node, ...props}) => (
           <pre className="mx-2 my-4" {...props}/>
@@ -88,4 +101,6 @@ export default function MarkdownMessage({ text }: MarkdownMessageProps) {
     </ReactMarkdown>
   );
 }
+
+
 

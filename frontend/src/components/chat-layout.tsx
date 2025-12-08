@@ -1,16 +1,18 @@
-import { v4 as uuidv4 } from "uuid";
-import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { v4 as uuidv4 } from "uuid"
+import { useState, useRef, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 
-import { ArrowUp, Square } from "lucide-react";
+import { ArrowUp } from "lucide-react"
 
-import { useChatStore } from "@/store/chat-store";
-import { streamChatResponse, createChatId } from "@/api/chat-service";
+import { useChatStore } from "@/store/chat-store"
+import { streamChatResponse, createChatId } from "@/api/chat-service"
 
-import { CHAT_CONFIG } from "@/config/chat"
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"
 import MarkdownMessage from "@/components/markdown-message"
 import TypingIndicator from "@/components/typing-indicator"
+import CopyButton from "@/components/copy-button"
+
+import { CHAT_CONFIG } from "@/config/chat"
 
 interface TypographyH3LinkProps {
   text: string;
@@ -50,8 +52,8 @@ export function ChatHeader({ isLoggedIn }: ChatHeaderProps) {
 }
 
 interface ChatWindowProps {
-  headerHeight: number;
-  footerHeight: number;
+  headerHeight: number
+  footerHeight: number
 }
 
 export function ChatWindow(
@@ -69,13 +71,15 @@ export function ChatWindow(
       });
     }
   }, [messageHistory]);
+  const defaultClass = "group mb-4 ";
+  const userDivClass = "ml-auto w-fit max-w-[85%]";
   const userBubbleClass = `
-    w-fit break-words whitespace-pre-wrap max-w-[85%] bg-gray-600
-    text-white p-3 rounded-xl ml-auto mb-4
+    break-words whitespace-pre-wrap bg-gray-600
+    text-white p-3 rounded-xl mb-[10px]
   `;
   const assistantBubbleClass = `
     w-fit break-words whitespace-normal max-w-[100%]
-    text-white p-3 mr-auto mb-4
+    text-white mr-auto mb-[10px]
   `;
   const lastChildPTagClass = "[&>p:last-child]:mb-0";
   return (
@@ -92,21 +96,30 @@ export function ChatWindow(
         className="max-w-[800px] mx-auto"
       >
       {messageHistory.map((m, i) => (
-        <div
-          key={m.id}
-          className={
-            lastChildPTagClass +
-            (m.role === "user" ? userBubbleClass : assistantBubbleClass)
-          }
-        >
-          {
-            !hasResponded && m.role === "assistant" && i === (messageHistory.length-1) ?
-            (
-              <TypingIndicator />
-            ) : (
-              <MarkdownMessage text={m.msgBody} />
-            )
-          }
+        <div className={defaultClass + (m.role === "user" ? userDivClass:"")}>
+          <div
+            key={m.id}
+            className={
+              lastChildPTagClass +
+              (m.role === "user" ? userBubbleClass : assistantBubbleClass)
+            }
+          >
+            {
+              !hasResponded
+                && m.role === "assistant"
+                && i === (messageHistory.length-1) ?
+              (
+                <TypingIndicator />
+              ) : (
+                <MarkdownMessage text={m.msgBody} />
+              )
+            }
+          </div>
+            {
+              (hasResponded || m.role === "user") && (
+                <CopyButton text={m.msgBody} />
+              )
+            }
         </div>
       ))}
       </div>
