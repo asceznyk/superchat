@@ -1,7 +1,7 @@
 services:
   backend:
     build: ./backend
-    image: superchat_backend:latest
+    image: ghcr.io/asceznyk/superchat_backend:latest
     container_name: dev_backend
     networks:
       - app_net
@@ -35,7 +35,7 @@ services:
 
   frontend:
     build: ./frontend
-    image: superchat_frontend:latest
+    image: ghcr.io/asceznyk/superchat_frontend:latest
     container_name: dev_frontend
     networks:
       - app_net

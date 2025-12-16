@@ -1,3 +1,5 @@
+from typing import List
+
 import os
 from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
@@ -23,5 +25,6 @@ class Settings(BaseSettings):
   MAX_CHAT_MSGS:int = 10
   CHAT_AUTH_TTL:int = 30 * 24 * 60 * 60
   CHAT_GUEST_TTL:int = 60 * 60
+  ALLOW_ORIGINS:List[str] = ["http://localhost:3000"]
 
 
