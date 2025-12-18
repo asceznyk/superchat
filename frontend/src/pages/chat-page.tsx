@@ -1,18 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { getChatHistory } from '@/api/chat-service'
+import { useUserStore } from '@/store/user-store'
 import { useChatStore } from '@/store/chat-store'
 
-import { ChatHeader, ChatWindow, ChatFooter } from '@/components/chat-layout'
+import ChatLayout from '@/components/chat-layout'
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/sidebar'
 
 export default function ChatPage() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const headerHeight = 80;
-  const [footerHeight, setFooterHeight] = useState(headerHeight);
   const { cid } = useParams();
+  const isLoggedIn = useUserStore(s => s.isLoggedIn);
   const chatId = useChatStore(s => s.chatId);
   const setChatId = useChatStore(s => s.setChatId);
   const setMessageHistory = useChatStore(s => s.setMessageHistory);
@@ -21,7 +20,6 @@ export default function ChatPage() {
     const run = async () => {
       setChatId(cid);
       let history = await getChatHistory(cid);
-      console.log(history);
       setMessageHistory(history);
     }
     run();
@@ -38,11 +36,7 @@ export default function ChatPage() {
           </SidebarProvider>
         </div>
       )}
-      <div className="flex flex-col flex-grow w-full">
-        <ChatHeader isLoggedIn={isLoggedIn} />
-        <ChatWindow headerHeight={headerHeight} footerHeight={footerHeight}/>
-        <ChatFooter onHeightChange={setFooterHeight}/>
-      </div>
+      <ChatLayout isLoggedIn={isLoggedIn}/>
     </div>
   );
 }

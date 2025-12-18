@@ -85,7 +85,10 @@ export default function MarkdownMessage({ text }: MarkdownMessageProps) {
           const match = /language-(\w+)/.exec(className || "");
           if (inline || !match) {
             return (
-              <code className="bg-gray-800 text-gray-200 px-1 py-0.5 rounded">
+              <code className="
+                inline-block max-w-full bg-gray-800 overflow-x-auto
+                text-gray-200 px-1 py-0.5 rounded
+              ">
                 {children}
               </code>
             );

@@ -21,6 +21,9 @@ interface ChatState {
   setIsStreaming: (v: boolean) => void;
   abortController: AbortController | null;
   hasResponded: boolean;
+  setHasResponded: (v: boolean) => void;
+  error: { message:string } | null;
+  setError: (v: { message:string  } | null) => void;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -65,7 +68,9 @@ export const useChatStore = create<ChatState>((set) => ({
   abortController: null,
   setAbortController: (c) => set({ abortController: c }),
   hasResponded: true,
-  setHasResponded: (v) => set({ hasResponded: v })
+  setHasResponded: (v) => set({ hasResponded: v }),
+  error: null,
+  setError: (o) => set({ error: o })
 }));
 
 
