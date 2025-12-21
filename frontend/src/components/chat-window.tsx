@@ -18,12 +18,11 @@ export function ChatWindow(
   const containerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = containerRef.current;
-    if (el) {
-      el.scrollTo({
-        top: el.scrollHeight,
-        behavior: "smooth",
-      });
-    }
+    if (!el) return;
+    el.scrollTo({
+      top: el.scrollHeight,
+      behavior: "smooth",
+    });
   }, [messageHistory]);
   const defaultClass = "group mb-4 ";
   const userDivClass = "ml-auto w-fit max-w-[85%]";
@@ -39,7 +38,7 @@ export function ChatWindow(
   return (
     <div
       ref={containerRef}
-      className="overflow-y-auto px-4 w-full max-w-[700px] mx-auto"
+      className="overflow-y-auto px-4 w-full max-w-[750px] mx-auto"
       style={{
         marginTop: headerHeight,
         marginBottom: footerHeight + 20,

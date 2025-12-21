@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react"
-import { useSendChat } from "@/hooks/use-send-chat"
+import { useStreamMessage } from "@/hooks/use-stream-msg"
 import { useChatStore } from "@/store/chat-store"
 
 import { ArrowUp } from "lucide-react"
@@ -128,7 +128,7 @@ export function ChatFooter({onHeightChange}: ChatFooterProps) {
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
-  const { streamMsg, stopMsg } = useSendChat();
+  const { streamMsg, stopMsg } = useStreamMessage();
   const handleSend = streamMsg;
   const handleStop = stopMsg;
   return (
@@ -136,7 +136,7 @@ export function ChatFooter({onHeightChange}: ChatFooterProps) {
       ref={footerRef}
       className="flex flex-col w-full fixed bottom-0 bg-background"
     >
-      <div className="w-full max-w-[700px] mx-auto">
+      <div className="w-full max-w-[750px] mx-auto">
         {
           error && (
             <ErrorAlert

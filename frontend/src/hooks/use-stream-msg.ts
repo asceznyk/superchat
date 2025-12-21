@@ -6,7 +6,7 @@ import { streamChatResponse, createChatId } from "@/api/chat-service"
 
 import { CHAT_CONFIG } from "@/config/chat"
 
-function throwServerError(err: Any, errorFunc: Function) {
+function throwServerError(err:Object, errorFunc: (err:Object) => void) {
   /*if(err.response?.status === 500) {
     errorFunc({ message: CHAT_CONFIG.ERROR_MSG_500 })
   }*/
@@ -14,11 +14,10 @@ function throwServerError(err: Any, errorFunc: Function) {
   return;
 }
 
-export function useSendChat() {
+export function useStreamMessage() {
   const userInput = useChatStore((s) => s.userInput);
   const chatId = useChatStore((s) => s.chatId);
   const abortController = useChatStore((s) => s.abortController);
-  const messageCount = useChatStore((s) => s.messageHistory.length);
   const setUserInput = useChatStore((s) => s.setUserInput);
   const setChatId = useChatStore((s) => s.setChatId);
   const addUserMessage = useChatStore((s) => s.addUserMessage);
@@ -29,8 +28,12 @@ export function useSendChat() {
   const setHasResponded = useChatStore((s) => s.setHasResponded);
   const setError = useChatStore((s) => s.setError);
   const navigate = useNavigate();
+  const gracefulError = (err:Object) => {
+    throwServerError(err, setError)
+    setHasResponded(true)
+  }
   const streamMsg = async () => {
-    if (!userInput.trim() || messageCount >= CHAT_CONFIG.MAX_MESSAGES)
+    if (!userInput.trim())
       return;
     let cid = chatId;
     if (!cid) {
@@ -58,8 +61,7 @@ export function useSendChat() {
       reader = res.reader;
       decoder = res.decoder;
     } catch (err) {
-      throwServerError(err, setError);
-      setHasResponded(true);
+      gracefulError(err)
       return;
     }
     try {
@@ -80,14 +82,14 @@ export function useSendChat() {
           } catch(err) {
             console.warn("Couldn't parse line from backend", err);
             console.warn("line", line);
+            gracefulError(err)
           }
         }
       }
-      setIsStreaming(false);
+      setIsStreaming(false)
     } catch(err) {
-      throwServerError(err, setError);
-      setHasResponded(true);
-      setIsStreaming(false);
+      gracefulError(err)
+      setIsStreaming(false)
     }
   };
   const stopMsg = () => {
