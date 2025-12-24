@@ -30,6 +30,7 @@ async def get_chat_response(
   full_text, text = "", ""
   for chunk in stream:
     text = chunk.text
+    print(f"text from google -> {text}")
     if not text: continue
     data = AIChunkResponse(
       role = "assistant",

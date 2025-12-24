@@ -1,4 +1,7 @@
 import { useState } from "react"
+
+import { authGoogle } from "@/api/auth"
+
 import {
   Dialog,
   DialogContent,
@@ -6,6 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+
 import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -34,6 +38,10 @@ export function AuthDialog({ text }: AuthDialogProps) {
   const [open, setOpen] = useState(false)
   const baseBtn = "rounded-full cursor-pointer"
   const baseInput = "rounded-full"
+  const handleClickGoogle = async () => {
+    const uri = await authGoogle();
+    window.location.href = uri;
+  }
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -43,7 +51,11 @@ export function AuthDialog({ text }: AuthDialogProps) {
         <DialogHeader>
           <DialogTitle>{text}</DialogTitle>
         </DialogHeader>
-        <Button className={baseBtn} variant="outline">
+        <Button
+          className={baseBtn}
+          variant="outline"
+          onClick={handleClickGoogle}
+        >
           <GoogleIcon />
           Continue with Google
         </Button>

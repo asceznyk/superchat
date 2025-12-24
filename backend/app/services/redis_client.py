@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Optional
 
 import redis.asyncio as redis
 
@@ -19,6 +19,21 @@ async def add_message(key:str, message:Union[ChatRequest,AIResponse]):
     pipe.rpush(key, message.model_dump_json())
     pipe.expire(key, ttl)
     await pipe.execute()
+
+async def set_state_key(key:str, value:str, ttl=int|None):
+  await client.set(key, value)
+  if ttl:
+    client.expire(key, ttl)
+
+async def get_state_key(key:str) -> Optional[str]:
+  res = await client.get(key)
+  return res
+
+async def delete_state_key(key:str):
+  await client.delete(key)
+
+#async def incr_count(key:str):
+#  await client.incr(key) ## FUTURE!
 
 async def get_history(key:str):
   json_list = await client.lrange(key, 0, -1)
