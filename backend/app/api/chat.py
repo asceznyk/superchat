@@ -10,22 +10,15 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 
 from app.core.config import Settings
 from app.core.utils import get_limit_response
-
 from app.models.states import ChatRequest, ChatIdResponse
-
 from app.services.redis_client import add_message, get_history
+from app.services.auth import get_current_user
 
 import app.services.google_client as google_client
 
 settings = Settings()
 
 router = APIRouter()
-
-def get_user_from_token(auth:Optional[str]=Header(None)) -> Dict[str,str]:
-  if not auth:
-    return {
-      "authenticated": False
-    }
 
 @router.post("/", response_model=ChatIdResponse)
 async def assign_chat_id(
@@ -48,7 +41,7 @@ async def assign_chat_id(
 @router.get("/{chat_id}", response_model=None)
 async def converstaion_thread(
   chat_id:str,
-  user:Dict=Depends(get_user_from_token),
+  user:Dict=Depends(get_current_user),
   session_id:str|None=Cookie(default=None)
 ) -> JSONResponse:
   is_auth = user["authenticated"]
@@ -62,7 +55,7 @@ async def converstaion_thread(
 async def ai_response(
   chat_id:str,
   chat_req:ChatRequest,
-  user:Dict=Depends(get_user_from_token),
+  user:Dict=Depends(get_current_user),
   session_id:str|None=Cookie(default=None)
 ) -> StreamingResponse:
   is_auth = user["authenticated"]

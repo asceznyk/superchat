@@ -1,12 +1,17 @@
 import secrets
 import httpx
+import json
+import uuid
 
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse
 
+from google.oauth2 import id_token
+
 from app.core.config import Settings
+from app.services.auth import create_token
 from app.services.redis_client import (
   set_state_key, get_state_key, delete_state_key
 )
@@ -15,6 +20,20 @@ settings = Settings()
 
 router = APIRouter()
 
+from google.oauth2 import id_token
+from google.auth.transport import requests
+
+def verify_google_id_token(token:str) -> dict:
+  try:
+    idinfo = id_token.verify_oauth2_token(
+      token,
+      requests.Request(),
+      audience = settings.GOOGLE_OAUTH_CLIENT_ID,
+    )
+    return idinfo
+  except ValueError:
+    return {}
+
 @router.get("/")
 async def get_auth_uri() -> str:
   state = secrets.token_urlsafe(32)
@@ -22,7 +41,7 @@ async def get_auth_uri() -> str:
     "client_id": settings.GOOGLE_OAUTH_CLIENT_ID,
     "redirect_uri": settings.GOOGLE_OAUTH_REDIRECT_URI,
     "response_type": "code",
-    "scope": "openid profile",
+    "scope": "openid profile email",
     "access_type": "offline",
     "state": state
   }
@@ -31,15 +50,14 @@ async def get_auth_uri() -> str:
   return auth_uri
 
 @router.get("/callback")
-async def get_access_token(
-  state:str, code:str, scope:str, authuser:int, prompt:str
-):
+async def get_access_token(state:str, code:str):
   issued = await get_state_key(state)
   if not issued:
     raise HTTPException(
       status_code=400, detail="state hasn't been issued"
     )
   await delete_state_key(state)
+  resp = None
   async with httpx.AsyncClient() as client:
     resp = await client.post(
       settings.GOOGLE_OAUTH_TOKEN_URI,
@@ -51,7 +69,38 @@ async def get_access_token(
         "redirect_uri": settings.GOOGLE_OAUTH_REDIRECT_URI
       }
     )
-    if resp.status_code == 200:
-      resp = resp.json()
-    ## verify access_token with id_token
+    if not resp or resp.status_code != 200:
+      raise HTTPException(
+        status_code=400, detail="didn't recive auth response"
+      )
+    resp = resp.json()
+  info = verify_google_id_token(resp['id_token'])
+  if not info:
+    raise HTTPException(
+      status_code=400, detail="id_token is not verifed!"
+    )
+  print(json.dumps(info, indent=2))
+  info['jti'] = str(uuid.uuid4())
+  access_token = create_token(info)
+  refresh_token = create_token({
+    'email': info['email'],
+    'name': info['name'],
+  })
+  resp = RedirectResponse(url="http://localhost/")
+  resp.set_cookie(
+    key="session_id",
+    value=access_token,
+    httponly=True,
+    samesite="lax",
+    max_age=(settings.JWT_EXPIRE_MINS*60)
+  )
+  resp.set_cookie(
+    key="session_refresh",
+    value=refresh_token,
+    httponly=True,
+    samesite="lax"
+  )
+  return resp
+
+
 
