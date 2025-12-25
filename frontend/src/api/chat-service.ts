@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseurl: "/api"
+  baseURL: "/api"
 });
 
 export async function getRoot() {
