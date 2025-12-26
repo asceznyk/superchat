@@ -1,6 +1,5 @@
 import secrets
 import httpx
-import uuid
 
 from urllib.parse import urlencode
 
@@ -11,9 +10,9 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 
 from app.core.config import Settings
-from app.services.auth import create_token
+from app.services.auth import issue_jwt_pair
 from app.services.redis_client import (
-  set_state_key, get_state_key, delete_state_key
+  add_key_value, get_key_value, delete_key_value
 )
 
 settings = Settings()
@@ -43,17 +42,17 @@ async def get_auth_uri() -> str:
     "state": state
   }
   auth_uri = f"{settings.GOOGLE_OAUTH_AUTH_URI}?{urlencode(params)}"
-  await set_state_key(state, 1)
+  await add_key_value(state, 1)
   return auth_uri
 
 @router.get("/callback")
 async def get_access_token(state:str, code:str):
-  issued = await get_state_key(state)
+  issued = await get_key_value(state)
   if not issued:
     raise HTTPException(
       status_code=400, detail="state hasn't been issued"
     )
-  await delete_state_key(state)
+  await delete_key_value(state)
   resp = None
   async with httpx.AsyncClient() as client:
     resp = await client.post(
@@ -76,17 +75,7 @@ async def get_access_token(state:str, code:str):
     raise HTTPException(
       status_code=400, detail="id_token is not verifed!"
     )
-  token_defaults = {
-    'email': info['email'],
-    'email_verified': info['email_verified'],
-    'name': info['name'],
-    'aud': info['aud'],
-  }
-  access_token = create_token({**token_defaults, 'jti':str(uuid.uuid4())})
-  refresh_token = create_token(
-    {**token_defaults, 'iat':info['iat']},
-    expire_delta = 24*60
-  )
+  access_token, refresh_token = await issue_jwt_pair(info)
   resp = RedirectResponse(url="http://localhost/")
   resp.set_cookie(
     key="session_id",

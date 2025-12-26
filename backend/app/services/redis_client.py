@@ -20,22 +20,31 @@ async def add_message(key:str, message:Union[ChatRequest,AIResponse]):
     pipe.expire(key, ttl)
     await pipe.execute()
 
-async def set_state_key(key:str, value:str, ttl=int|None):
-  await client.set(key, value)
-  if ttl:
-    client.expire(key, ttl)
+async def get_history(key:str):
+  json_list = await client.ltrim(key, 0, 4)
+  return json_list
 
-async def get_state_key(key:str) -> Optional[str]:
+async def add_key_value(key:str, value:str, ttl:int|None=None):
+  if not ttl:
+    await client.set(key, value)
+  else:
+    async with client.pipeline() as pipe:
+      pipe.set(key, value)
+      pipe.expire(key, ttl)
+      await pipe.execute()
+
+async def get_key_value(key:str) -> Optional[str]:
   res = await client.get(key)
   return res
 
-async def delete_state_key(key:str):
+async def delete_key_value(key:str):
   await client.delete(key)
+
+async def does_key_exist(key:str) -> bool:
+  res = await client.exists(key)
+  return res
+
 
 #async def incr_count(key:str):
 #  await client.incr(key) ## FUTURE!
-
-async def get_history(key:str):
-  json_list = await client.lrange(key, 0, -1)
-  return json_list
 

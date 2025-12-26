@@ -33,8 +33,10 @@ class Settings(BaseSettings):
   GOOGLE_OAUTH_REDIRECT_URI:str = "http://localhost/api/auth/google/callback"
   GOOGLE_OAUTH_CLIENT_ID:str = os.getenv("GOOGLE_OAUTH_CLIENT_ID")
   GOOGLE_OAUTH_CLIENT_SECRET:str = os.getenv("GOOGLE_OAUTH_CLIENT_SECRET")
-  JWT_SERVER_SECRET:str = os.getenv("JWT_SERVER_SECRET")
+  JWT_ACCESS_SECRET:str = os.getenv("JWT_ACCESS_SECRET")
+  JWT_REFRESH_SECRET:str = os.getenv("JWT_REFRESH_SECRET")
   JWT_ALGORITHM:str = "HS256"
-  JWT_EXPIRE_MINS:int = 15
+  JWT_ACCESS_TTL:int = 15
+  JWT_REFRESH_TTL:int = 24 * 60
 
 

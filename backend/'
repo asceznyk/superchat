@@ -7,8 +7,7 @@ from fastapi.responses import JSONResponse
 
 from app.models.states import UserProfile
 from app.core.config import Settings
-from app.services.redis_client import does_key_exist, delete_key_value
-from app.services.auth import issue_jwt_pair, verify_token, get_current_user
+from app.services.auth import create_token, verify_token, get_current_user
 
 settings = Settings()
 
@@ -23,34 +22,19 @@ def user_profile_info(user:Dict=Depends(get_current_user)):
     email = user['email']
   )
 
-@router.post("/refresh")
-async def user_refresh_session(
+@router.get("/refresh")
+def refresh_session_token(
   session_refresh:str=Cookie(default=None)
 ) -> JSONResponse:
-  print("session_refresh", session_refresh)
   if not session_refresh:
     raise HTTPException(status_code=401, detail="Missing refresh token")
-  try:
-    info = verify_token(session_refresh, token_type='refresh')
-  except:
-    raise HTTPException(status_code=401, detail="Invalid refresh token")
-  refresh_jti = info['jti']
-  is_token_valid = await does_key_exist(refresh_jti)
-  if not is_token_valid:
-    raise HTTPException(status_code=401, detail="Refresh token revoked")
+  info = verify_token(session_refresh, token_type='refresh')
   success = {"set": True}
-  await delete_key_value(refresh_jti)
-  access_token, refresh_token = await issue_jwt_pair(info)
+  access_token, refresh_token = issue_jwt_pair(info)
   resp = JSONResponse(content=success)
   resp.set_cookie(
     key="session_id",
     value=access_token,
-    httponly=True,
-    samesite="lax"
-  )
-  resp.set_cookie(
-    key="session_refresh",
-    value=refresh_token,
     httponly=True,
     samesite="lax"
   )
