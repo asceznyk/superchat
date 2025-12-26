@@ -9,3 +9,9 @@ export async function authGoogle() {
   return res.data;
 }
 
+export async function getUserProfile() {
+  const res = await api.get('/auth/user/me');
+  console.log(res.data);
+  return res.data;
+}
+

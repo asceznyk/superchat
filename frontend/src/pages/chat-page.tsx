@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { getChatHistory } from '@/api/chat-service'
+import { getUserProfile } from '@/api/auth'
 import { useUserStore } from '@/store/user-store'
 import { useChatStore } from '@/store/chat-store'
 
@@ -11,22 +12,21 @@ import { AppSidebar } from '@/components/sidebar'
 
 export default function ChatPage() {
   const { cid } = useParams();
-  const isLoggedIn = useUserStore(s => s.isLoggedIn);
-  const chatId = useChatStore(s => s.chatId);
-  const setChatId = useChatStore(s => s.setChatId);
-  const setMessageHistory = useChatStore(s => s.setMessageHistory);
+  const isLoggedIn = useUserStore(s => s.isLoggedIn)
+  const chatId = useChatStore(s => s.chatId)
+  const setChatId = useChatStore(s => s.setChatId)
+  const setMessageHistory = useChatStore(s => s.setMessageHistory)
   useEffect(() => {
-    if (cid == chatId) return;
-    const run = async () => {
+    if (!cid || cid === chatId) return;
+    (async () => {
       setChatId(cid);
-      let history = await getChatHistory(cid);
+      const history = await getChatHistory(cid);
       setMessageHistory(history);
-    }
-    run();
+    })();
   }, [cid]);
   return (
     <div className="relative flex flex-col md:flex-row h-full w-full overflow-hidden">
-      {isLoggedIn && (
+      {/*isLoggedIn && (
         <div className="flex md:w-auto w-full">
           <SidebarProvider defaultOpen={false}>
             <AppSidebar />
@@ -35,8 +35,8 @@ export default function ChatPage() {
             </main>
           </SidebarProvider>
         </div>
-      )}
-      <ChatLayout isLoggedIn={isLoggedIn}/>
+      )*/}
+      <ChatLayout />
     </div>
   );
 }
