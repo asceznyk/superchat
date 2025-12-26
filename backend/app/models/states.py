@@ -1,6 +1,10 @@
 from typing import Optional
 from pydantic import BaseModel
 
+class UserProfile(BaseModel):
+  name:str
+  email:str
+
 class ChatRequest(BaseModel):
   role:str
   msg_body:str
@@ -19,5 +23,6 @@ class AIResponse(BaseModel):
 class AILimitResponse(BaseModel):
   msg_body:str
   msg_type:str
+
 
 

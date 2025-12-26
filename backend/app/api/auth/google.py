@@ -1,14 +1,14 @@
 import secrets
 import httpx
-import json
 import uuid
 
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import RedirectResponse
 
 from google.oauth2 import id_token
+from google.auth.transport import requests
 
 from app.core.config import Settings
 from app.services.auth import create_token
@@ -19,9 +19,6 @@ from app.services.redis_client import (
 settings = Settings()
 
 router = APIRouter()
-
-from google.oauth2 import id_token
-from google.auth.transport import requests
 
 def verify_google_id_token(token:str) -> dict:
   try:
@@ -79,20 +76,23 @@ async def get_access_token(state:str, code:str):
     raise HTTPException(
       status_code=400, detail="id_token is not verifed!"
     )
-  print(json.dumps(info, indent=2))
-  info['jti'] = str(uuid.uuid4())
-  access_token = create_token(info)
-  refresh_token = create_token({
+  token_defaults = {
     'email': info['email'],
+    'email_verified': info['email_verified'],
     'name': info['name'],
-  })
+    'aud': info['aud'],
+  }
+  access_token = create_token({**token_defaults, 'jti':str(uuid.uuid4())})
+  refresh_token = create_token(
+    {**token_defaults, 'iat':info['iat']},
+    expire_delta = 24*60
+  )
   resp = RedirectResponse(url="http://localhost/")
   resp.set_cookie(
     key="session_id",
     value=access_token,
     httponly=True,
     samesite="lax",
-    max_age=(settings.JWT_EXPIRE_MINS*60)
   )
   resp.set_cookie(
     key="session_refresh",

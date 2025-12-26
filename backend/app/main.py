@@ -9,8 +9,7 @@ from fastapi.responses import JSONResponse
 from app.core.config import Settings
 from app.models import states
 
-from app.api import chat
-from app.api import auth
+from app.api import chat, auth
 
 settings = Settings()
 app = FastAPI(root_path="/api")
@@ -25,12 +24,9 @@ app.add_middleware(
   allow_headers=["*"],
 )
 
-app.include_router(chat.router, prefix="/chat", tags=["chat"])
-app.include_router(
-  auth.google.router,
-  prefix="/auth/google",
-  tags=["auth/google"]
-)
+app.include_router(chat.router, prefix="/chat")
+app.include_router(auth.user.router, prefix="/auth/user")
+app.include_router(auth.google.router, prefix="/auth/google")
 
 @app.get("/", response_model=None)
 async def root() -> JSONResponse:

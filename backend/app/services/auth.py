@@ -1,4 +1,4 @@
-from jose import jwt, JWTError
+from jose import jwt, JWTError, ExpiredSignatureError
 from datetime import datetime, timezone, timedelta
 
 from fastapi import HTTPException, Cookie
@@ -18,15 +18,19 @@ def create_token(data:dict, expire_delta:int|None=None) -> str:
   )
 
 def verify_token(token:str) -> dict:
+  payload = {}
   try:
     payload = jwt.decode(
       token,
       settings.JWT_SERVER_SECRET,
       algorithms=[settings.JWT_ALGORITHM],
+      audience=settings.GOOGLE_OAUTH_CLIENT_ID
     )
-    return payload
+  except ExpiredSignatureError:
+    pass
   except JWTError:
-    return {}
+    raise HTTPException(status_code=401, detail="Invalid token")
+  return payload
 
 def get_current_user(session_id:str|None=Cookie(default=None)):
   if not session_id:
@@ -35,7 +39,7 @@ def get_current_user(session_id:str|None=Cookie(default=None)):
     }
   try:
     info = verify_token(session_id)
-    info["authenticated"] = True
+    info["authenticated"] = (True if info else False)
     return info
   except ValueError:
     raise HTTPException(status_code=401, detail="Invalid token")
