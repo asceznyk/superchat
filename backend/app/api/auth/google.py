@@ -10,7 +10,7 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 
 from app.core.config import Settings
-from app.services.auth import issue_jwt_pair
+from app.services.auth import issue_jwt_pair, secure_cookie
 from app.services.redis_client import (
   add_key_value, get_key_value, delete_key_value
 )
@@ -77,18 +77,16 @@ async def get_access_token(state:str, code:str):
     )
   access_token, refresh_token = await issue_jwt_pair(info)
   resp = RedirectResponse(url="http://localhost/")
-  resp.set_cookie(
-    key="session_id",
-    value=access_token,
-    httponly=True,
-    samesite="lax",
-  )
-  resp.set_cookie(
-    key="session_refresh",
-    value=refresh_token,
-    httponly=True,
-    samesite="lax"
-  )
+  resp.set_cookie(**secure_cookie(
+    "session_id",
+    access_token,
+    max_age=(settings.JWT_ACCESS_TTL*60)
+  ))
+  resp.set_cookie(**secure_cookie(
+    "session_refresh",
+    refresh_token,
+    max_age=(settings.JWT_REFRESH_TTL*60)
+  ))
   return resp
 
 

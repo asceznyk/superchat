@@ -14,6 +14,7 @@ ENV_PATH = os.path.join(BASE_DIR, ".env")
 load_dotenv(ENV_PATH)
 
 class Settings(BaseSettings):
+  APP_ENV:str = os.getenv("APP_ENV")
   APP_NAME:str = "superchat"
   OPENAI_API_KEY:str = os.getenv("OPENAI_API_KEY")
   GEMINI_API_KEY:str = os.getenv("GEMINI_API_KEY")

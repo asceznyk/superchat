@@ -58,6 +58,7 @@ async def ai_response(
   user:Dict=Depends(get_current_user),
   session_id:str|None=Cookie(default=None)
 ) -> StreamingResponse:
+  print("session_id", session_id)
   is_auth = user["authenticated"]
   logged = "auth" if is_auth else "guest"
   thread_id = f"thread:{logged}:{session_id}:{chat_id}"

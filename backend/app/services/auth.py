@@ -1,3 +1,5 @@
+from typing import Dict
+
 import uuid
 
 from typing import Tuple, Literal
@@ -11,6 +13,19 @@ from app.core.config import Settings
 from app.services.redis_client import add_key_value
 
 settings = Settings()
+
+def secure_cookie(
+  key:str, value:str, max_age:int|None=None
+) -> Dict[str,str]:
+  return {
+    'key': key,
+    'value': value,
+    'httponly': True,
+    'samesite': "lax",
+    'secure': (settings.APP_ENV != "development"),
+    'path': "/",
+    'max_age': max_age
+  }
 
 def create_token(data:dict, *, token_type:Literal['access','refresh']) -> str:
   to_encode = data.copy()
