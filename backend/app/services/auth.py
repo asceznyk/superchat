@@ -9,10 +9,8 @@ from datetime import datetime, timezone, timedelta
 
 from fastapi import HTTPException, Cookie
 
-from app.core.config import Settings
+from app.core.config import settings
 from app.services.redis_client import add_key_value
-
-settings = Settings()
 
 def secure_cookie(
   key:str, value:str, max_age:int|None=None
@@ -43,19 +41,18 @@ def create_token(data:dict, *, token_type:Literal['access','refresh']) -> str:
   return jwt.encode(to_encode, secret, algorithm=settings.JWT_ALGORITHM)
 
 async def issue_jwt_pair(info:dict) -> Tuple[str,str]:
-  token_defaults = {
+  token_claims = {
+    'sub': info['sub'],
     'email': info['email'],
-    'email_verified': info['email_verified'],
     'name': info['name'],
-    'aud': info['aud']
   }
   access_token = create_token({
-    **token_defaults,
+    **token_claims,
     'jti':str(uuid.uuid4())
   }, token_type='access')
   refresh_jti = str(uuid.uuid4())
   refresh_token = create_token({
-    **token_defaults,
+    **token_claims,
     'jti': refresh_jti
   }, token_type='refresh')
   await add_key_value(refresh_jti, 1)

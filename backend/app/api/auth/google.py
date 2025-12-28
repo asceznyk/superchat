@@ -3,19 +3,19 @@ import httpx
 
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, HTTPException
+from fastapi import Depends, APIRouter, HTTPException
 from fastapi.responses import RedirectResponse
 
 from google.oauth2 import id_token
 from google.auth.transport import requests
 
-from app.core.config import Settings
+from app.core.config import settings
+from app.db.connection import get_db
+from app.db.user import upsert_user
 from app.services.auth import issue_jwt_pair, secure_cookie
 from app.services.redis_client import (
   add_key_value, get_key_value, delete_key_value
 )
-
-settings = Settings()
 
 router = APIRouter()
 
@@ -46,7 +46,7 @@ async def get_auth_uri() -> str:
   return auth_uri
 
 @router.get("/callback")
-async def get_access_token(state:str, code:str):
+async def get_access_token(state:str, code:str, conn=Depends(get_db)):
   issued = await get_key_value(state)
   if not issued:
     raise HTTPException(
@@ -74,8 +74,20 @@ async def get_access_token(state:str, code:str):
   if not info:
     raise HTTPException(
       status_code=400, detail="id_token is not verifed!"
-    )
-  access_token, refresh_token = await issue_jwt_pair(info)
+   )
+  user_id = await upsert_user(
+    conn=conn,
+    email=info['email'],
+    name=info['name'],
+    auth_type='oauth',
+    auth_provider='google'
+  )
+  jwt_payload = {
+    "sub": str(user_id),
+    "email": info["email"],
+    "name": info.get("name", ""),
+  }
+  access_token, refresh_token = await issue_jwt_pair(jwt_payload)
   resp = RedirectResponse(url="http://localhost/")
   resp.set_cookie(**secure_cookie(
     "session_id",

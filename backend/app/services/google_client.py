@@ -5,10 +5,8 @@ from google import genai
 from app.models.states import ChatRequest, AIChunkResponse, AIResponse
 from app.services.redis_client import add_message
 
-from app.core.config import Settings
+from app.core.config import settings
 from app.core.utils import convert_to_gemini_msgs
-
-settings = Settings()
 
 client = genai.Client(
   api_key = settings.GEMINI_API_KEY

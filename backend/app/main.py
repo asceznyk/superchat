@@ -1,20 +1,25 @@
 import os
 import uuid
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
-from app.core.config import Settings
+from app.core.config import settings
 from app.models import states
-
 from app.api import chat, auth
+from app.db.connection import db_pool
 
-settings = Settings()
-app = FastAPI(root_path="/api")
+@asynccontextmanager
+async def lifespan(app:FastAPI):
+  await db_pool.open()
+  yield
+  await db_pool.close()
 
-settings = Settings()
+app = FastAPI(root_path="/api", lifespan=lifespan)
 
 app.add_middleware(
   CORSMiddleware,

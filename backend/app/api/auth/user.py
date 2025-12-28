@@ -6,13 +6,11 @@ from fastapi import APIRouter, HTTPException, Cookie, Depends
 from fastapi.responses import JSONResponse
 
 from app.models.states import UserProfile
-from app.core.config import Settings
+from app.core.config import settings
 from app.services.redis_client import does_key_exist, delete_key_value
 from app.services.auth import (
   issue_jwt_pair, verify_token, get_current_user, secure_cookie
 )
-
-settings = Settings()
 
 router = APIRouter()
 

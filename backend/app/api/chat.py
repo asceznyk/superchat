@@ -8,15 +8,13 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi import APIRouter, Depends, Header, HTTPException
 
-from app.core.config import Settings
+from app.core.config import settings
 from app.core.utils import get_limit_response
 from app.models.states import ChatRequest, ChatIdResponse
 from app.services.redis_client import add_message, get_history
 from app.services.auth import get_current_user
 
 import app.services.google_client as google_client
-
-settings = Settings()
 
 router = APIRouter()
 

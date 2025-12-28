@@ -2,10 +2,8 @@ from typing import Union, Optional
 
 import redis.asyncio as redis
 
-from app.core.config import Settings
+from app.core.config import settings
 from app.models.states import ChatRequest, AIResponse
-
-settings = Settings()
 
 client = redis.Redis(host="redis", port=6379, decode_responses=True)
 

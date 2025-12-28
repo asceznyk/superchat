@@ -5,10 +5,8 @@ from openai import OpenAI
 from app.models.states import ChatRequest, AIChunkResponse, AIResponse
 from app.services.redis_client import add_message
 
-from app.core.config import Settings
+from app.core.config import settings
 from app.core.utils import convert_to_openai_msgs
-
-settings = Settings()
 
 client = OpenAI(
   api_key = settings.OPENAI_API_KEY
