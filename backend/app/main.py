@@ -5,8 +5,6 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.models import states
@@ -32,9 +30,5 @@ app.add_middleware(
 app.include_router(chat.router, prefix="/chat")
 app.include_router(auth.user.router, prefix="/auth/user")
 app.include_router(auth.google.router, prefix="/auth/google")
-
-@app.get("/", response_model=None)
-async def root() -> JSONResponse:
-  return JSONResponse(content=jsonable_encoder({"message":"Hello world!"}))
 
 

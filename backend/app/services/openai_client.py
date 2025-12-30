@@ -3,7 +3,7 @@ from typing import List, Union
 from openai import OpenAI
 
 from app.models.states import ChatRequest, AIChunkResponse, AIResponse
-from app.services.redis_client import add_message
+from app.services.cache import redis_client
 
 from app.core.config import settings
 from app.core.utils import convert_to_openai_msgs
@@ -34,7 +34,7 @@ async def get_chat_response(thread_id:str, chat_history:List[str]):
     role = "assistant",
     msg_body = full_text,
   )
-  await add_message(thread_id, ai_resp)
+  await redis_client.add_chat_message(thread_id, ai_resp)
 
 
 

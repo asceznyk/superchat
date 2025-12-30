@@ -6,6 +6,7 @@ db_pool = AsyncConnectionPool(
   settings.DB_URL,
   min_size = 1,
   max_size = 10,
+  open = False
 )
 
 async def get_db():

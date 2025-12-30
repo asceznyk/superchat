@@ -10,7 +10,7 @@ from datetime import datetime, timezone, timedelta
 from fastapi import HTTPException, Cookie
 
 from app.core.config import settings
-from app.services.redis_client import add_key_value
+from app.services.cache import redis_client
 
 def secure_cookie(
   key:str, value:str, max_age:int|None=None
@@ -55,7 +55,7 @@ async def issue_jwt_pair(info:dict) -> Tuple[str,str]:
     **token_claims,
     'jti': refresh_jti
   }, token_type='refresh')
-  await add_key_value(refresh_jti, 1)
+  await redis_client.add_key_value(refresh_jti, 1)
   return access_token, refresh_token
 
 def verify_token(token:str, *, token_type:Literal['access','refresh']) -> dict:

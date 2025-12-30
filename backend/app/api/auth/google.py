@@ -13,9 +13,7 @@ from app.core.config import settings
 from app.db.connection import get_db
 from app.db.user import upsert_user
 from app.services.auth import issue_jwt_pair, secure_cookie
-from app.services.redis_client import (
-  add_key_value, get_key_value, delete_key_value
-)
+from app.services.cache import redis_client
 
 router = APIRouter()
 
@@ -42,20 +40,20 @@ async def get_auth_uri() -> str:
     "state": state
   }
   auth_uri = f"{settings.GOOGLE_OAUTH_AUTH_URI}?{urlencode(params)}"
-  await add_key_value(state, 1)
+  await redis_client.add_key_value(state, 1)
   return auth_uri
 
 @router.get("/callback")
 async def get_access_token(state:str, code:str, conn=Depends(get_db)):
-  issued = await get_key_value(state)
+  issued = await redis_client.get_key_value(state)
   if not issued:
     raise HTTPException(
       status_code=400, detail="state hasn't been issued"
     )
-  await delete_key_value(state)
+  await redis_client.delete_key_value(state)
   resp = None
-  async with httpx.AsyncClient() as client:
-    resp = await client.post(
+  async with httpx.AsyncClient() as http_client:
+    resp = await http_client.post(
       settings.GOOGLE_OAUTH_TOKEN_URI,
       data = {
         "client_id": settings.GOOGLE_OAUTH_CLIENT_ID,

@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from app.core.config import settings
 from app.core.utils import get_limit_response
 from app.models.states import ChatRequest, ChatIdResponse
-from app.services.redis_client import add_message, get_history
+from app.services.cache import redis_client
 from app.services.auth import get_current_user
 
 import app.services.google_client as google_client
@@ -44,7 +44,7 @@ async def converstaion_thread(
 ) -> JSONResponse:
   is_auth = user["authenticated"]
   thread_id = f"thread:{"auth" if is_auth else "guest"}:{session_id}:{chat_id}"
-  history = await get_history(thread_id)
+  history = await redis_client.get_history(thread_id)
   return JSONResponse(content = jsonable_encoder(
     [json.loads(s) for s in history]
   ))
@@ -56,13 +56,12 @@ async def ai_response(
   user:Dict=Depends(get_current_user),
   session_id:str|None=Cookie(default=None)
 ) -> StreamingResponse:
-  print("session_id", session_id)
   is_auth = user["authenticated"]
   logged = "auth" if is_auth else "guest"
   thread_id = f"thread:{logged}:{session_id}:{chat_id}"
   if not is_auth:
-    await add_message(thread_id, chat_req)
-    history = await get_history(thread_id)
+    await redis_client.add_chat_message(thread_id, chat_req)
+    history = await redis_client.get_history(thread_id)
   return StreamingResponse(
     google_client.get_chat_response(thread_id, history),
     media_type="text/event-stream"

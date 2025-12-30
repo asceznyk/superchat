@@ -5,7 +5,7 @@ import random
 
 from app.models.states import AIChunkResponse, AIResponse
 from app.core.utils import md_text_samples
-from app.services.redis_client import add_message
+from app.services.cache import redis_client
 
 async def get_chat_response(thread_id:str, chat_history:List[str]):
   full_text = ""
@@ -21,7 +21,7 @@ async def get_chat_response(thread_id:str, chat_history:List[str]):
     role = "assistant",
     msg_body = full_text,
   )
-  await add_message(thread_id, ai_resp)
+  await redis_client.add_chat_message(thread_id, ai_resp)
 
 
 
