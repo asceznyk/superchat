@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { getUserProfile } from '@/api/auth'
+import { getUserProfile, logoutUser } from '@/api/auth'
 import { useUserStore } from '@/store/user-store'
 
 import { Button } from "@/components/ui/button"
@@ -29,32 +29,37 @@ export function UserProfile({ name }: UserProfileProps) {
 }
 
 export function ChatHeader() {
-  const headerClass = `
+  const baseHeader = `
   flex fixed top-0 w-full items-center justify-between
   py-3 px-4 bg-background border-b border-border
   `;
-  const buttonClass = `
-  rounded-full cursor-pointer px-4 py-2 text-sm sm:text-base
-  `;
+  const baseBtn = `rounded-full cursor-pointer`;
   const isLoggedIn = useUserStore(s => s.isLoggedIn)
-  const name = useUserStore(s => s.name)
   const setIsLoggedIn = useUserStore(s => s.setIsLoggedIn)
-  const setName = useUserStore(s => s.setName)
+  const handleClickLogout = async () => {
+    const res = await logoutUser()
+    setIsLoggedIn(false)
+  }
   useEffect(() => {
     (async () => {
-      const profile = await getUserProfile();
+      const profile = await getUserProfile()
       if (!profile) return;
-      setIsLoggedIn(true);
-      setName(profile.name);
+      setIsLoggedIn(true)
     })();
   }, []);
   return (
-    <div className={headerClass}>
+    <div className={baseHeader}>
       <TypographyH3Link text="Superchat" />
         <div className="flex gap-2">
         {isLoggedIn ?
           (
-            <UserProfile name={name} />
+            <Button
+              className={baseBtn}
+              variant="outline"
+              onClick={handleClickLogout}
+            >
+              Logout
+            </Button>
           )
         : (
             <AuthDialog text="Login or Register" />

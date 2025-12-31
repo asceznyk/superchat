@@ -11,7 +11,11 @@ export async function authGoogle() {
 
 export async function getUserProfile() {
   const res = await api.get('/auth/user/me');
-  console.log(res.data);
+  return res.data;
+}
+
+export async function logoutUser() {
+  const res = await api.post('/auth/user/logout');
   return res.data;
 }
 

@@ -59,9 +59,6 @@ export function AuthDialog({ text }: AuthDialogProps) {
           <GoogleIcon />
           Continue with Google
         </Button>
-        <Separator className="my-4" />
-        <Input className={baseInput} placeholder="Continue with email" />
-        <Button className={baseBtn}>Continue</Button>
       </DialogContent>
     </Dialog>
   )

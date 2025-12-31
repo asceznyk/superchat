@@ -97,7 +97,7 @@ function SendButton({ onSend, onStop }: SendButtonProps) {
             className="rounded-full cursor-pointer h-10 w-10 p-0 ml-2"
             onClick={onSend}
           >
-            <ArrowUp />
+            <ArrowUp strokeWidth={3} className="h-10 w-10" />
           </Button>
         )
       }
@@ -115,7 +115,7 @@ export function ChatFooter({onHeightChange}: ChatFooterProps) {
   const error = useChatStore((s) => s.error);
   const setError = useChatStore((s) => s.setError);
   const classTextarea = `
-    flex justify-between items-end border border-solid border-gray-300
+    flex justify-between items-end border border-solid
     gap-2
     py-2 px-2
   `;
