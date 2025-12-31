@@ -1,13 +1,20 @@
 from pathlib import Path
 from typing import List
-from pydantic_settings import BaseSettings
 
-BASE_DIR = Path(__file__).resolve().parents[2]  # backend/
+from pydantic_settings import BaseSettings
+from pydantic import ConfigDict
+
+BASE_DIR = Path(__file__).resolve().parents[2]
 
 class settings(BaseSettings):
+  model_config = ConfigDict(
+    env_file = BASE_DIR / ".env",
+    case_sensitive = True
+  )
 
   APP_NAME:str = "superchat"
   APP_ENV:str
+  APP_FRONTEND_URL:str
 
   OPENAI_API_KEY:str
   GEMINI_API_KEY:str
@@ -53,10 +60,6 @@ class settings(BaseSettings):
         f"{self.PG_PSWD}@{self.PG_HOST}:"
         f"{self.PG_PORT}/{self.PG_DB}"
     )
-
-  class Config:
-    env_file = BASE_DIR / ".env"
-    case_sensitive = True
 
 settings = settings()
 

@@ -55,10 +55,11 @@ async def issue_jwt_pair(info:dict) -> Tuple[str,str]:
     **token_claims,
     'jti': refresh_jti
   }, token_type='refresh')
-  await redis_client.add_key_value(refresh_jti, 1)
+  await redis_client.add_key_value(f"user:jti:{refresh_jti}", 1)
   return access_token, refresh_token
 
 def verify_token(token:str, *, token_type:Literal['access','refresh']) -> dict:
+  print("its_actually_me, verify_token")
   payload = {}
   try:
     if token_type == 'access':

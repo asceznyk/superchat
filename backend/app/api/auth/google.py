@@ -44,11 +44,11 @@ async def get_auth_uri() -> str:
   return auth_uri
 
 @router.get("/callback")
-async def get_access_token(state:str, code:str, conn=Depends(get_db)):
+async def set_session_cookies(state:str, code:str, conn=Depends(get_db)):
   issued = await redis_client.get_key_value(state)
   if not issued:
     raise HTTPException(
-      status_code=400, detail="state hasn't been issued"
+      status_code=401, detail="state hasn't been issued"
     )
   await redis_client.delete_key_value(state)
   resp = None
@@ -86,7 +86,7 @@ async def get_access_token(state:str, code:str, conn=Depends(get_db)):
     "name": info.get("name", ""),
   }
   access_token, refresh_token = await issue_jwt_pair(jwt_payload)
-  resp = RedirectResponse(url="http://localhost/")
+  resp = RedirectResponse(url="http://localhost/") # change hardcoded URL
   resp.set_cookie(**secure_cookie(
     "session_id",
     access_token,

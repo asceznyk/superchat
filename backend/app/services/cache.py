@@ -37,10 +37,12 @@ class RedisClient:
     return await self.client.get(key)
 
   async def delete_key_value(self, key:str):
+    if not (await self.client.exists(key)): return
     await self.client.delete(key)
 
   async def does_key_exist(self, key:str) -> bool:
     return bool(await self.client.exists(key))
 
 redis_client = RedisClient()
+
 

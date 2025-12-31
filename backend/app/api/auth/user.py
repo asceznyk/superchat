@@ -4,8 +4,8 @@ from typing import Dict
 
 from jose import JWTError
 
-from fastapi import APIRouter, HTTPException, Cookie, Depends
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, HTTPException, Cookie, Depends, Request
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.models.states import UserProfile
 from app.core.config import settings
@@ -35,14 +35,13 @@ async def user_refresh_session(
     info = verify_token(session_refresh, token_type='refresh')
   except JWTError:
     raise HTTPException(status_code=401, detail="Invalid refresh token")
-  refresh_jti = info['jti']
-  is_token_valid = await redis_client.does_key_exist(refresh_jti)
+  jti_key = f"user:jti:{info['jti']}"
+  is_token_valid = await redis_client.does_key_exist(jti_key)
   if not is_token_valid:
     raise HTTPException(status_code=401, detail="Refresh token revoked")
-  success = {"set": True}
-  await redis_client.delete_key_value(refresh_jti)
+  await redis_client.delete_key_value(jti_key)
   access_token, refresh_token = await issue_jwt_pair(info)
-  resp = JSONResponse(content=success)
+  resp = JSONResponse(content={"set":True})
   resp.set_cookie(**secure_cookie(
     "session_id",
     access_token,
@@ -54,5 +53,23 @@ async def user_refresh_session(
     max_age=(settings.JWT_REFRESH_TTL*60)
   ))
   return resp
+
+@router.post("/logout")
+async def delete_session_cookies(req:Request):
+  resp = RedirectResponse(
+    url=settings.APP_FRONTEND_URL,
+    status_code=303
+  )
+  if req.cookies.get('session_id'):
+    resp.delete_cookie("session_id")
+  if req.cookies.get('session_refresh'):
+    resp.delete_cookie("session_refresh")
+    info = verify_token(
+      req.cookies.get('session_refresh'),
+      token_type='refresh'
+    )
+    await redis_client.delete_key_value(f"user:jti:{info['jti']}")
+  return resp
+
 
 
