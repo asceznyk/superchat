@@ -44,21 +44,23 @@ class settings(BaseSettings):
   JWT_ACCESS_SECRET:str
   JWT_REFRESH_SECRET:str
   JWT_ALGORITHM:str = "HS256"
-  JWT_ACCESS_TTL:int = 15
+  JWT_ACCESS_TTL:int = 1
   JWT_REFRESH_TTL:int = 24 * 60
 
   PG_USER:str
   PG_PSWD:str
-  PG_DB:str
+  PG_MAIN_DB:str
+  PG_TEST_DB:str
   PG_HOST:str = "postgres"
   PG_PORT:int = 5432
 
   @property
   def DB_URL(self) -> str:
+    selected_db = self.PG_MAIN_DB if self.APP_ENV != "testing" else self.PG_TEST_DB
     return (
       f"postgresql://{self.PG_USER}:"
         f"{self.PG_PSWD}@{self.PG_HOST}:"
-        f"{self.PG_PORT}/{self.PG_DB}"
+        f"{self.PG_PORT}/{selected_db}"
     )
 
 settings = settings()

@@ -19,10 +19,12 @@ if config.config_file_name is not None:
 
 DB_URL = (
   f"postgresql+psycopg://"
-  f"{os.environ['PG_USER']}:{os.environ['PG_PSWD']}"
+  f"{os.getenv('PG_USER')}:{os.getenv('PG_PSWD')}"
   f"@postgres:{5432}"
-  f"/{os.environ['PG_DB']}"
+  f"/{os.getenv('PG_MAIN_DB') if os.getenv('APP_ENV') != 'testing' else os.getenv('PG_TEST_DB')}"
 )
+
+print(f"connecting to {DB_URL} ...")
 
 config.set_main_option("sqlalchemy.url", DB_URL)
 
