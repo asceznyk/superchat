@@ -1,13 +1,4 @@
-import axios from "axios";
-
-const api = axios.create({
-  baseURL: "/api"
-});
-
-export async function getRoot() {
-  const res = await api.get('/');
-  return res.data;
-}
+import api, { fetchWithAuth } from '@/api/setup'
 
 export async function createChatId() {
   const res = await api.post('/chat/', {
@@ -25,7 +16,7 @@ export async function getChatHistory(chatId:string) {
 export async function streamChatResponse(
   userInput:string, chatId:string, signal:AbortController=null
 ) {
-  const res = await fetch(`/api/chat/${chatId}`, {
+  const res = await fetchWithAuth(`/api/chat/${chatId}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(

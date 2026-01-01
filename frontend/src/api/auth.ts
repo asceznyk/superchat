@@ -1,21 +1,13 @@
-import axios from "axios";
+import api, { unwrap, setLogoutHandler } from '@/api/setup'
 
-const api = axios.create({
-  baseURL: "/api"
-});
+export const authGoogle = () => unwrap(api.get('/auth/google/'));
 
-export async function authGoogle() {
-  const res = await api.get('/auth/google/');
-  return res.data;
-}
+export const getUserProfile = () => unwrap(api.get('/auth/user/me'));
 
-export async function getUserProfile() {
-  const res = await api.get('/auth/user/me');
-  return res.data;
-}
+export const logoutUser = () => unwrap(api.post("/auth/user/logout"));
 
-export async function logoutUser() {
-  const res = await api.post('/auth/user/logout');
-  return res.data;
-}
+setLogoutHandler(() => {
+  logoutUser();
+})
+
 
