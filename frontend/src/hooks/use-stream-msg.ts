@@ -47,13 +47,13 @@ export function useStreamMessage() {
     addUserMessage({
       id: uuidv4(),
       role: "user",
-      msgBody: userInput,
+      msgContent: userInput,
     });
     setUserInput("");
     addAssistantMessage({
       id: uuidv4(),
       role: "assistant",
-      msg_body: "",
+      msg_content: "",
     });
     let reader, decoder;
     try {

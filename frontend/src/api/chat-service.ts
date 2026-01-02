@@ -1,11 +1,14 @@
 import api, { fetchWithAuth } from '@/api/setup'
+import { CHAT_CONFIG } from '@/config/chat'
 
 export async function createChatId() {
   const res = await api.post('/chat/', {
     role: "user",
-    msg_body: "ping"
+    msg_type: "text",
+    msg_content: "ping",
+    ai_model_id: CHAT_CONFIG.DEFAULT_MODEL_ID
   });
-  return res.data.chat_id;
+  return res.data.thread_id;
 }
 
 export async function getChatHistory(chatId:string) {
@@ -14,7 +17,10 @@ export async function getChatHistory(chatId:string) {
 }
 
 export async function streamChatResponse(
-  userInput:string, chatId:string, signal:AbortController=null
+  userInput:string,
+  chatId:string,
+  signal:AbortController=null,
+  msgType:string="text"
 ) {
   const res = await fetchWithAuth(`/api/chat/${chatId}`, {
     method: "POST",
@@ -22,7 +28,9 @@ export async function streamChatResponse(
     body: JSON.stringify(
       {
         role: "user",
-        msg_body: userInput,
+        msg_type: msgType,
+        msg_content: userInput,
+        ai_model_id: CHAT_CONFIG.DEFAULT_MODEL_ID
       }
     ),
     signal

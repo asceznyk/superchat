@@ -4,7 +4,7 @@ import { create } from "zustand";
 interface ChatMessage {
   id: string;
   role: "user" | "assistant";
-  msgBody: string;
+  msgContent: string;
 }
 
 interface ChatState {
@@ -37,7 +37,7 @@ export const useChatStore = create<ChatState>((set) => ({
       messageHistory: history.map((msg) => ({
         id: uuidv4(),
         role: msg.role,
-        msgBody: msg.msg_body,
+        msgContent: msg.msg_content,
       })),
     }),
   addUserMessage: (msg) =>
@@ -49,7 +49,7 @@ export const useChatStore = create<ChatState>((set) => ({
       return {
         messageHistory: [
           ...state.messageHistory,
-          { id: chunk.id, role: chunk.role, msgBody: chunk.msg_body },
+          { id: chunk.id, role: chunk.role, msgContent: chunk.msg_content },
         ]
       }
     }),
@@ -58,7 +58,7 @@ export const useChatStore = create<ChatState>((set) => ({
       const lastIndex = state.messageHistory.length-1;
       const updatedHistory = state.messageHistory.map((msg, idx) =>
         idx === lastIndex
-        ? { ...msg, msgBody: msg.msgBody + chunk.msg_body }
+        ? { ...msg, msgContent: msg.msgContent + chunk.msg_content }
         : msg
       );
       return { messageHistory: updatedHistory }

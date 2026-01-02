@@ -64,13 +64,13 @@ export function ChatWindow(
               (
                 <TypingIndicator />
               ) : (
-                <MarkdownMessage text={m.msgBody} />
+                <MarkdownMessage text={m.msgContent} />
               )
             }
           </div>
             {
               (hasResponded || m.role === "user") && (
-                <CopyButton text={m.msgBody} />
+                <CopyButton text={m.msgContent} />
               )
             }
         </div>
