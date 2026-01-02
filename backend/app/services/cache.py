@@ -3,7 +3,7 @@ from typing import Optional, Union
 import redis.asyncio as redis
 
 from app.core.config import settings
-from app.models.states import ChatRequest, AIResponse
+from app.models.states import UserMessageRequest, AIResponse
 
 class RedisClient:
 
@@ -14,8 +14,8 @@ class RedisClient:
       decode_responses=True,
     )
 
-  async def add_chat_message(self, key:str, message:Union[ChatRequest,AIResponse]):
-    ttl = settings.CHAT_GUEST_TTL if key.startswith("thread:guest:") else settings.CHAT_AUTH_TTL
+  async def add_chat_message(self, key:str, message:Union[UserMessageRequest,AIResponse]):
+    ttl = settings.CACHE_CHAT_GUEST_TTL_SECS if key.startswith("thread:guest:") else settings.CACHE_CHAT_AUTH_TTL_SECS
     async with self.client.pipeline() as pipe:
       pipe.rpush(key, message.model_dump_json())
       pipe.expire(key, ttl)

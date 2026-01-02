@@ -3,7 +3,7 @@ import httpx
 
 from urllib.parse import urlencode
 
-from fastapi import Depends, APIRouter, HTTPException
+from fastapi import Depends, APIRouter, HTTPException, Request
 from fastapi.responses import RedirectResponse
 
 from google.oauth2 import id_token
@@ -44,7 +44,7 @@ async def get_auth_uri() -> str:
   return auth_uri
 
 @router.get("/callback")
-async def set_session_cookies(state:str, code:str, conn=Depends(get_db)):
+async def set_session_cookies(req:Request, state:str, code:str, conn=Depends(get_db)):
   issued = await redis_client.get_key_value(state)
   if not issued:
     raise HTTPException(
@@ -73,7 +73,7 @@ async def set_session_cookies(state:str, code:str, conn=Depends(get_db)):
     raise HTTPException(
       status_code=400, detail="id_token is not verifed!"
    )
-  user_id = await upsert_user(
+  user_id, actor_id = await upsert_user(
     conn=conn,
     email=info['email'],
     name=info['name'],
@@ -82,6 +82,7 @@ async def set_session_cookies(state:str, code:str, conn=Depends(get_db)):
   )
   jwt_payload = {
     "sub": str(user_id),
+    "actor": str(actor_id),
     "email": info["email"],
     "name": info.get("name", ""),
   }
@@ -90,13 +91,15 @@ async def set_session_cookies(state:str, code:str, conn=Depends(get_db)):
   resp.set_cookie(**secure_cookie(
     "session_id",
     access_token,
-    max_age=(settings.JWT_ACCESS_TTL*60)
+    max_age=(settings.JWT_ACCESS_TTL_MINS*60)
   ))
   resp.set_cookie(**secure_cookie(
     "session_refresh",
     refresh_token,
-    max_age=(settings.JWT_REFRESH_TTL*60)
+    max_age=(settings.JWT_REFRESH_TTL_MINS*60)
   ))
+  if req.cookies.get('guest_id'):
+    resp.delete_cookie('guest_id')
   return resp
 
 

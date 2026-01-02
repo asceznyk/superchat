@@ -10,61 +10,91 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 
 from app.core.config import settings
 from app.core.utils import get_limit_response
-from app.models.states import ChatRequest, ChatIdResponse
+from app.models.states import UserMessageRequest, ChatIdResponse
+
 from app.services.cache import redis_client
 from app.services.auth import get_current_user
+from app.services.stream import stream_and_persist
 
-import app.services.google_client as google_client
+from app.db.connection import get_db
+from app.db.message import insert_message
+
+#import app.services.google_client as google_client
+import app.services.dummy_client as dummy_client
 
 router = APIRouter()
 
 @router.post("/", response_model=ChatIdResponse)
-async def assign_chat_id(
-  chat_req:ChatRequest,
+async def assign_thread_id(
+  user_msg_req:UserMessageRequest,
   response:JSONResponse,
-  session_id:str|None=Cookie(default=None)
+  user:Dict=Depends(get_current_user),
 ) -> ChatIdResponse:
-  resp = ChatIdResponse(chat_id = str(uuid.uuid4()))
-  if session_id:
+  resp = ChatIdResponse(thread_id=str(uuid.uuid4()))
+  if user['authenticated']:
     return resp
   response.set_cookie(
-    key="session_id",
+    key="guest_id",
     value=str(uuid.uuid4()),
     httponly=True,
     samesite="lax",
-    max_age=settings.MAX_AGE_ANON_ID,
+    max_age=settings.COOKIE_MAX_AGE_ANON_SECS,
   )
   return resp
 
-@router.get("/{chat_id}", response_model=None)
-async def converstaion_thread(
-  chat_id:str,
+@router.get("/{thread_id}", response_model=None)
+async def get_converstaion_thread(
+  thread_id:str,
   user:Dict=Depends(get_current_user),
-  session_id:str|None=Cookie(default=None)
+  guest_id:str=Cookie(default=None)
 ) -> JSONResponse:
-  is_auth = user["authenticated"]
-  thread_id = f"thread:{"auth" if is_auth else "guest"}:{session_id}:{chat_id}"
-  history = await redis_client.get_history(thread_id)
+  if not guest_id: return
+  actor_type, actor_id = "guest", guest_id
+  is_auth = user['authenticated']
+  if is_auth:
+    actor_type = "auth"
+    actor_id = user['actor']
+  thread_key = f"thread:{actor_type}:{actor_id}:{thread_id}"
+  history = await redis_client.get_chat_history(thread_key)
   return JSONResponse(content = jsonable_encoder(
     [json.loads(s) for s in history]
   ))
 
-@router.post("/{chat_id}", response_model=None)
-async def ai_response(
-  chat_id:str,
-  chat_req:ChatRequest,
+@router.post("/{thread_id}", response_model=None)
+async def gen_ai_response(
+  thread_id:str,
+  user_msg_req:UserMessageRequest,
   user:Dict=Depends(get_current_user),
-  session_id:str|None=Cookie(default=None)
+  guest_id:str=Cookie(default=None),
+  conn=Depends(get_db)
 ) -> StreamingResponse:
+  actor_type, actor_id = "guest", guest_id
   is_auth = user["authenticated"]
-  logged = "auth" if is_auth else "guest"
-  thread_id = f"thread:{logged}:{session_id}:{chat_id}"
-  if not is_auth:
-    await redis_client.add_chat_message(thread_id, chat_req)
-    history = await redis_client.get_history(thread_id)
-  return StreamingResponse(
-    google_client.get_chat_response(thread_id, history),
+  if (not is_auth) and (not guest_id):
+    raise HTTPException(401, detail="no valid cookies!")
+  if is_auth:
+    actor_type, actor_id = "auth", user['actor']
+  thread_key = f"thread:{actor_type}:{actor_id}:{thread_id}"
+  await redis_client.add_chat_message(thread_key, user_msg_req)
+  if is_auth:
+    await insert_message(
+      conn,
+      actor_id,
+      thread_id,
+      user_msg_req.msg_type,
+      user_msg_req.msg_content
+    )
+  history = await redis_client.get_chat_history(thread_key)
+  resp = StreamingResponse(
+    stream_and_persist(
+      dummy_client.get_chat_response,
+      history,
+      thread_key,
+      user_msg_req.ai_model_id,
+      (conn if is_auth else None)
+    ),
     media_type="text/event-stream"
   )
+  return resp
 
 

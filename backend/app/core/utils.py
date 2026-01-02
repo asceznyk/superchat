@@ -58,7 +58,7 @@ def convert_to_openai_msgs(history:List[str]) -> List[Dict]:
     role =  "user" if msg_json["role"] != "assistant" else "assistant"
     messages.append({
       "role": role,
-      "content": msg_json["msg_body"]
+      "content": msg_json["msg_content"]
     })
   return messages
 
@@ -70,7 +70,7 @@ def convert_to_gemini_msgs(history:List[str]) -> List[Dict]:
     if role == "assistant": role = "model"
     messages.append({
       "role": role,
-      "parts": [{"text": msg_json["msg_body"]}]
+      "parts": [{"text": msg_json["msg_content"]}]
     })
   return messages
 
@@ -78,7 +78,7 @@ async def get_limit_response(is_auth:bool):
   for text in TEMPTLATE_LIMIT_MSG:
     data = AIChunkResponse(
       role = "assistant",
-      msg_body = text,
+      msg_content = text,
       authenticated = is_auth
     )
     await asyncio.sleep(0.02)

@@ -19,7 +19,7 @@ class Actor(Base):
     primary_key=True,
     server_default=func.gen_random_uuid(),
   )
-  role = Column(Text, nullable=False)
+  actor_role = Column(Text, nullable=False)
   created_at = Column(
     TIMESTAMP(timezone=True),
     nullable=False,
@@ -72,7 +72,7 @@ class AIModel(Base):
     nullable=False
   )
   model_name = Column(Text, nullable=False)
-  version = Column(Text)
+  model_version = Column(Text)
   provider = Column(Text, nullable=False)
   capabilities = Column(Text)
 

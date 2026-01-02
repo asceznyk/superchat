@@ -5,23 +5,25 @@ class UserProfile(BaseModel):
   name:str
   email:str
 
-class ChatRequest(BaseModel):
+class UserMessageRequest(BaseModel):
   role:str
-  msg_body:str
+  msg_type:str
+  msg_content:str
+  ai_model_id:str
 
 class ChatIdResponse(BaseModel):
-  chat_id:str
+  thread_id:str
 
 class AIChunkResponse(BaseModel):
   role:str
-  msg_body:str
+  msg_content:str
 
 class AIResponse(BaseModel):
   role:str
-  msg_body:Optional[str]
+  msg_content:Optional[str]
 
 class AILimitResponse(BaseModel):
-  msg_body:str
+  msg_content:str
   msg_type:str
 
 

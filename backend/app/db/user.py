@@ -1,13 +1,11 @@
 from typing import Optional
 
-from app.db.connection import get_db
-
 async def upsert_user(
   conn,
-  email: str,
-  name: str,
-  auth_type: str = "password",
-  auth_provider: str = "self",
+  email:str,
+  name:str,
+  auth_type:str="password",
+  auth_provider:str="self",
 ) -> str:
   parts = name.split() if name else []
   first_name = parts[0] if parts else ""
@@ -22,7 +20,7 @@ async def upsert_user(
         WHERE email = %s
       ),
       new_actor AS (
-        INSERT INTO actors (role)
+        INSERT INTO actors (actor_role)
         SELECT 'user'
         WHERE NOT EXISTS (SELECT 1 FROM existing_user)
         RETURNING id
@@ -50,7 +48,7 @@ async def upsert_user(
       ON CONFLICT (email)
       DO UPDATE SET
         last_login_at = EXCLUDED.last_login_at
-      RETURNING user_id;
+      RETURNING user_id, actor_id;
       """,
       (
         email,
@@ -62,7 +60,8 @@ async def upsert_user(
         auth_provider,
       ),
     )
-    return (await cur.fetchone())[0]
+    user_id, actor_id = await cur.fetchone()
+    return user_id, actor_id
 
 
 

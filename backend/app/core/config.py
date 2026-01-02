@@ -24,10 +24,9 @@ class settings(BaseSettings):
     "Keep your answers concise."
   )
 
-  MAX_ANON_CHAT_MSGS:int = 10
-  CHAT_AUTH_TTL:int = 30 * 24 * 60 * 60
-  CHAT_GUEST_TTL:int = 60 * 60
-  MAX_AGE_ANON_ID:int = 24 * 60 * 60
+  CACHE_CHAT_AUTH_TTL_SECS:int = 30 * 24 * 60 * 60
+  CACHE_CHAT_GUEST_TTL_SECS:int = 60 * 60
+  COOKIE_MAX_AGE_ANON_SECS:int = 24 * 60 * 60
 
   ALLOW_ORIGINS:List[str] = [
     "http://localhost",
@@ -44,8 +43,8 @@ class settings(BaseSettings):
   JWT_ACCESS_SECRET:str
   JWT_REFRESH_SECRET:str
   JWT_ALGORITHM:str = "HS256"
-  JWT_ACCESS_TTL:int = 1
-  JWT_REFRESH_TTL:int = 24 * 60
+  JWT_ACCESS_TTL_MINS:int = 15
+  JWT_REFRESH_TTL_MINS:int = 24 * 60
 
   PG_USER:str
   PG_PSWD:str

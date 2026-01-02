@@ -29,23 +29,18 @@ def create_token(data:dict, *, token_type:Literal['access','refresh']) -> str:
   to_encode = data.copy()
   if token_type == 'access':
     expire = datetime.now(timezone.utc) + timedelta(
-      minutes = settings.JWT_ACCESS_TTL
+      minutes = settings.JWT_ACCESS_TTL_MINS
     )
     secret = settings.JWT_ACCESS_SECRET
   else:
     expire = datetime.now(timezone.utc) + timedelta(
-      minutes = settings.JWT_REFRESH_TTL
+      minutes = settings.JWT_REFRESH_TTL_MINS
     )
     secret = settings.JWT_REFRESH_SECRET
   to_encode.update({"exp": expire})
   return jwt.encode(to_encode, secret, algorithm=settings.JWT_ALGORITHM)
 
-async def issue_jwt_pair(info:dict) -> Tuple[str,str]:
-  token_claims = {
-    'sub': info['sub'],
-    'email': info['email'],
-    'name': info['name'],
-  }
+async def issue_jwt_pair(token_claims:dict) -> Tuple[str,str]:
   access_token = create_token({
     **token_claims,
     'jti':str(uuid.uuid4())
@@ -59,7 +54,6 @@ async def issue_jwt_pair(info:dict) -> Tuple[str,str]:
   return access_token, refresh_token
 
 def verify_token(token:str, *, token_type:Literal['access','refresh']) -> dict:
-  print("its_actually_me, verify_token")
   payload = {}
   try:
     if token_type == 'access':

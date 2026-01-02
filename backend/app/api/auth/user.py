@@ -17,7 +17,7 @@ from app.services.auth import (
 router = APIRouter()
 
 @router.get("/me", response_model=UserProfile)
-def user_profile_info(user:Dict=Depends(get_current_user)):
+def user_profile_info(req:Request, user:Dict=Depends(get_current_user)):
   if not user['authenticated']:
     raise HTTPException(status_code=401, detail="token is not verified")
   return UserProfile(
@@ -45,12 +45,12 @@ async def user_refresh_session(
   resp.set_cookie(**secure_cookie(
     "session_id",
     access_token,
-    max_age=(settings.JWT_ACCESS_TTL*60)
+    max_age=(settings.JWT_ACCESS_TTL_MINS*60)
   ))
   resp.set_cookie(**secure_cookie(
     "session_refresh",
     refresh_token,
-    max_age=(settings.JWT_REFRESH_TTL*60)
+    max_age=(settings.JWT_REFRESH_TTL_MINS*60)
   ))
   return resp
 
