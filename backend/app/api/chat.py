@@ -10,11 +10,11 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 
 from app.core.config import settings
 from app.core.utils import get_limit_response
-from app.models.states import UserMessageRequest, ChatIdResponse
+from app.models.states import UserMessageRequest, ChatIdResponse, AIResponse
 
 from app.services.cache import redis_client
 from app.services.auth import get_current_user
-from app.services.stream import stream_and_persist
+from app.services.stream import MessageStreamer
 
 from app.db.connection import get_db
 from app.db.message import insert_message
@@ -48,7 +48,6 @@ async def get_converstaion_thread(
   user:Dict=Depends(get_current_user),
   guest_id:str=Cookie(default=None)
 ) -> JSONResponse:
-  if not guest_id: return
   actor_type, actor_id = "guest", guest_id
   is_auth = user['authenticated']
   if is_auth:
@@ -75,7 +74,9 @@ async def gen_ai_response(
   if is_auth:
     actor_type, actor_id = "auth", user['actor']
   thread_key = f"thread:{actor_type}:{actor_id}:{thread_id}"
-  await redis_client.add_chat_message(thread_key, user_msg_req)
+  await redis_client.add_chat_message(
+    thread_key, user_msg_req.model_dump_json()
+  )
   if is_auth:
     await insert_message(
       conn,
@@ -85,14 +86,16 @@ async def gen_ai_response(
       user_msg_req.msg_content
     )
   history = await redis_client.get_chat_history(thread_key)
+  msg_streamer = MessageStreamer(
+    response_stream = dummy_client.get_chat_response,
+    chat_history = history,
+    payload = {
+      "actor_id": user_msg_req.ai_model_id,
+      "thread_key": thread_key
+    }
+  )
   resp = StreamingResponse(
-    stream_and_persist(
-      dummy_client.get_chat_response,
-      history,
-      thread_key,
-      user_msg_req.ai_model_id,
-      (conn if is_auth else None)
-    ),
+    msg_streamer.stream_and_persist(is_auth),
     media_type="text/event-stream"
   )
   return resp

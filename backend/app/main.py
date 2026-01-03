@@ -1,6 +1,8 @@
 import os
 import uuid
+import asyncio
 
+import contextlib
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -10,12 +12,19 @@ from app.core.config import settings
 from app.models import states
 from app.api import chat, auth
 from app.db.connection import db_pool
+from app.services.response_writeback import writeback_consumer
 
 @asynccontextmanager
-async def lifespan(app:FastAPI):
+async def lifespan(app: FastAPI):
   await db_pool.open()
-  yield
-  await db_pool.close()
+  worker_task = asyncio.create_task(writeback_consumer())
+  try:
+    yield
+  finally:
+    worker_task.cancel()
+    with contextlib.suppress(asyncio.CancelledError):
+      await worker_task
+    await db_pool.close()
 
 app = FastAPI(root_path="/api", lifespan=lifespan)
 

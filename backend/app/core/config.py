@@ -24,6 +24,7 @@ class settings(BaseSettings):
     "Keep your answers concise."
   )
 
+  CACHE_AI_RESP_KEY:str = "ai_resp:writeback"
   CACHE_CHAT_AUTH_TTL_SECS:int = 30 * 24 * 60 * 60
   CACHE_CHAT_GUEST_TTL_SECS:int = 60 * 60
   COOKIE_MAX_AGE_ANON_SECS:int = 24 * 60 * 60

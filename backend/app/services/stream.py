@@ -1,45 +1,44 @@
-from typing import Callable, List
+from typing import Callable, List, Dict
 
 import json
 import asyncio
 
+from app.core.config import settings
+from app.services.cache import redis_client
 from app.models.states import AIResponse
 
-from app.services.cache import redis_client
-from app.db.message import insert_message
+class MessageStreamer():
 
-async def stream_and_persist(
-  chat_stream:Callable,
-  history:List[str],
-  thread_key:str,
-  actor_id:str,
-  conn:object|None=None
-):
-  try:
-    full_text = ""
-    async for chunk in chat_stream(history):
-      yield chunk
-      resp = json.loads(chunk)
-      full_text += resp['msg_content']
-  except asyncio.CancelledError:
-    print("WTF?")
-    raise
-  except Exception as e:
-    print("error:", e)
-    raise
-  finally:
-    ai_resp = AIResponse(
-      role = "assistant",
-      msg_content = full_text
-    )
-    await redis_client.add_chat_message(thread_key, ai_resp)
-    if conn is not None:
-      await insert_message(
-        conn,
-        actor_id,
-        thread_key.split(":")[-1],
-        'text',
-        full_text
+  def __init__(
+    self,
+    response_stream:Callable,
+    chat_history:List[str],
+    payload:Dict[str,str]
+  ):
+    self.response_stream = response_stream
+    self.chat_history = chat_history
+    self.payload = payload
+    self.full_text = ""
+
+  async def stream_and_persist(self, is_auth:bool=False):
+    try:
+      self.full_text = ""
+      async for chunk in self.response_stream(self.chat_history):
+        yield chunk
+        resp = json.loads(chunk)
+        self.full_text += resp['msg_content']
+    except asyncio.CancelledError:
+      raise
+    except Exception as e:
+      raise
+    finally:
+      self.payload['ai_resp'] = AIResponse(
+        role = 'assistant',
+        msg_content = self.full_text
+      ).model_dump_json()
+      self.payload['is_auth'] = is_auth
+      await redis_client.q_put(
+        settings.CACHE_AI_RESP_KEY, json.dumps(self.payload)
       )
 
 
