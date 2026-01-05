@@ -2,7 +2,7 @@ from typing import List, Union
 
 from google import genai
 
-from app.models.states import UserMessageRequest, AIChunkResponse, AIResponse
+from app.models.states import MessageRequest, AIChunkResponse, AIResponse
 from app.services.cache import redis_client
 
 from app.core.config import settings

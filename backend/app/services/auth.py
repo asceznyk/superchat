@@ -25,18 +25,26 @@ def secure_cookie(
     'max_age': max_age
   }
 
-def create_token(data:dict, *, token_type:Literal['access','refresh']) -> str:
+def create_token(
+  data:dict, *, token_type:Literal['access','refresh','guest']
+) -> str:
   to_encode = data.copy()
+  expire = datetime.now(timezone.utc)
   if token_type == 'access':
-    expire = datetime.now(timezone.utc) + timedelta(
+    expire += timedelta(
       minutes = settings.JWT_ACCESS_TTL_MINS
     )
     secret = settings.JWT_ACCESS_SECRET
-  else:
-    expire = datetime.now(timezone.utc) + timedelta(
+  elif token_type == 'refresh':
+    expire += timedelta(
       minutes = settings.JWT_REFRESH_TTL_MINS
     )
     secret = settings.JWT_REFRESH_SECRET
+  else:
+    expire += timedelta(
+      minutes = settings.JWT_GUEST_TTL_MINS
+    )
+    secret = settings.JWT_GUEST_SECRET
   to_encode.update({"exp": expire})
   return jwt.encode(to_encode, secret, algorithm=settings.JWT_ALGORITHM)
 
@@ -53,17 +61,24 @@ async def issue_jwt_pair(token_claims:dict) -> Tuple[str,str]:
   await redis_client.add_key_value(f"user:jti:{refresh_jti}", 1)
   return access_token, refresh_token
 
-def verify_token(token:str, *, token_type:Literal['access','refresh']) -> dict:
+def verify_token(
+  token:str, *, token_type:Literal['access','refresh','guest']
+) -> dict:
   payload = {}
   try:
     if token_type == 'access':
       secret = settings.JWT_ACCESS_SECRET
-    else:
+    elif token_type == 'refresh':
       secret = settings.JWT_REFRESH_SECRET
+    else:
+      secret = settings.JWT_GUEST_SECRET
     payload = jwt.decode(
       token, secret,
-      algorithms=[settings.JWT_ALGORITHM],
-      audience=settings.GOOGLE_OAUTH_CLIENT_ID
+      algorithms = [settings.JWT_ALGORITHM],
+      audience = (
+        settings.GOOGLE_OAUTH_CLIENT_ID if token_type in ['access','refresh'] \
+        else None
+      )
     )
   except ExpiredSignatureError:
     pass
@@ -83,5 +98,15 @@ def get_current_user(session_id:str|None=Cookie(default=None)):
   except ValueError:
     raise HTTPException(status_code=401, detail="Invalid token")
 
-
+def get_current_guest(guest_id:str|None=Cookie(default=None)):
+  if not guest_id:
+    return {
+      "verified": False
+    }
+  try:
+    info = verify_token(guest_id, token_type='guest')
+    info["verified"] = (True if info else False)
+    return info
+  except ValueError:
+    raise HTTPException(status_code=401, detail="Invalid token")
 

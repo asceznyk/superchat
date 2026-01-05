@@ -28,7 +28,7 @@ class Actor(Base):
 
 class User(Base):
   __tablename__ = "users"
-  user_id = Column(
+  id = Column(
     UUID(as_uuid=True),
     primary_key=True,
     server_default=func.gen_random_uuid(),
@@ -62,7 +62,7 @@ class User(Base):
 
 class AIModel(Base):
   __tablename__ = "ai_models"
-  model_id = Column(
+  id = Column(
     UUID(as_uuid=True),
     primary_key=True,
     server_default=func.gen_random_uuid(),
@@ -78,9 +78,15 @@ class AIModel(Base):
 
 class Thread(Base):
   __tablename__ = "threads"
-  id = Column(Integer, primary_key=True, autoincrement=True)
-  thread_id = Column(Text, nullable=False, unique=True)
-  user_id = Column(Integer, nullable=True)
+  id = Column(
+    UUID(as_uuid=True),
+    primary_key=True,
+    server_default=func.gen_random_uuid(),
+  )
+  actor_id = Column(
+    ForeignKey("actors.id", ondelete="CASCADE"),
+    nullable=False
+  )
   thread_title = Column(Text, nullable=False)
   is_pinned = Column(Boolean, nullable=False, server_default="false")
   created_at = Column(
@@ -108,11 +114,13 @@ class Message(Base):
     nullable=False,
   )
   thread_id = Column(
-    Text,
-    nullable=False,
+    UUID(as_uuid=True),
+    ForeignKey("threads.id", ondelete="CASCADE"),
+    nullable=False
   )
   branched_from_id = Column(
     UUID(as_uuid=True),
+    ForeignKey("threads.id", ondelete="SET NULL"),
     nullable=True,
   )
   msg_type = Column(

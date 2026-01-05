@@ -7,6 +7,7 @@ from pydantic import ConfigDict
 BASE_DIR = Path(__file__).resolve().parents[2]
 
 class settings(BaseSettings):
+
   model_config = ConfigDict(
     env_file = BASE_DIR / ".env",
     case_sensitive = True
@@ -27,7 +28,6 @@ class settings(BaseSettings):
   CACHE_AI_RESP_KEY:str = "ai_resp:writeback"
   CACHE_CHAT_AUTH_TTL_SECS:int = 30 * 24 * 60 * 60
   CACHE_CHAT_GUEST_TTL_SECS:int = 60 * 60
-  COOKIE_MAX_AGE_ANON_SECS:int = 24 * 60 * 60
 
   ALLOW_ORIGINS:List[str] = [
     "http://localhost",
@@ -43,9 +43,11 @@ class settings(BaseSettings):
 
   JWT_ACCESS_SECRET:str
   JWT_REFRESH_SECRET:str
-  JWT_ALGORITHM:str = "HS256"
+  JWT_GUEST_SECRET:str
   JWT_ACCESS_TTL_MINS:int = 15
   JWT_REFRESH_TTL_MINS:int = 24 * 60
+  JWT_GUEST_TTL_MINS:int = 24 * 60
+  JWT_ALGORITHM:str = "HS256"
 
   PG_USER:str
   PG_PSWD:str

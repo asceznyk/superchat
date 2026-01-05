@@ -48,7 +48,7 @@ async def upsert_user(
       ON CONFLICT (email)
       DO UPDATE SET
         last_login_at = EXCLUDED.last_login_at
-      RETURNING user_id, actor_id;
+      RETURNING id, actor_id;
       """,
       (
         email,

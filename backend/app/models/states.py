@@ -5,7 +5,7 @@ class UserProfile(BaseModel):
   name:str
   email:str
 
-class UserMessageRequest(BaseModel):
+class MessageRequest(BaseModel):
   role:str
   msg_type:str
   msg_content:str

@@ -1,7 +1,5 @@
 from typing import Optional
 
-from app.models.states import UserMessageRequest
-
 async def insert_message(
   conn,
   actor_id:str,
