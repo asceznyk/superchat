@@ -7,7 +7,17 @@ interface ChatMessage {
   msgContent: string;
 }
 
-interface ChatState {
+const initialState = {
+  chatId: "",
+  userInput: "",
+  messageHistory: [] as ChatMessage[],
+  isStreaming: false,
+  abortController: null as AbortController | null,
+  hasResponded: true,
+  error: null as { message: string } | null,
+};
+
+type ChatState = typeof initialState & {
   chatId: string;
   setChatId: (text: string) => void;
   userInput: string;
@@ -27,11 +37,9 @@ interface ChatState {
 }
 
 export const useChatStore = create<ChatState>((set) => ({
-  userInput: "",
+  ...initialState,
   setUserInput: (text) => set({ userInput: text }),
-  chatId: "",
   setChatId: (text) => set({ chatId: text }),
-  messageHistory: [],
   setMessageHistory: (history) =>
     set({
       messageHistory: history.map((msg) => ({
@@ -41,9 +49,7 @@ export const useChatStore = create<ChatState>((set) => ({
       })),
     }),
   addUserMessage: (msg) =>
-    set((state) => ({
-      messageHistory: [...state.messageHistory, msg],
-    })),
+    set((state) => ({ messageHistory: [...state.messageHistory, msg] })),
   addAssistantMessage: (chunk) =>
     set((state) => {
       return {
@@ -55,23 +61,21 @@ export const useChatStore = create<ChatState>((set) => ({
     }),
   addAssistantMsgChunk: (chunk) =>
     set((state) => {
-      const lastIndex = state.messageHistory.length-1;
-      const updatedHistory = state.messageHistory.map((msg, idx) =>
-        idx === lastIndex
-        ? { ...msg, msgContent: msg.msgContent + chunk.msg_content }
-        : msg
-      );
-      return { messageHistory: updatedHistory }
+      if (state.messageHistory.length <= 0) return state;
+      const last = state.messageHistory[state.messageHistory.length - 1];
+      if (!last || last.role !== "assistant") return state;
+      return {
+        messageHistory: [
+          ...state.messageHistory.slice(0, -1),
+          { ...last, msgContent: last.msgContent + chunk.msg_content },
+        ],
+      };
     }),
-  isStreaming: false,
   setIsStreaming: (v) => set({ isStreaming: v }),
-  abortController: null,
   setAbortController: (c) => set({ abortController: c }),
-  hasResponded: true,
   setHasResponded: (v) => set({ hasResponded: v }),
-  error: null,
-  setError: (o) => set({ error: o })
+  setError: (o) => set({ error: o }),
+  reset: () => set(() => initialState),
 }));
-
 
 

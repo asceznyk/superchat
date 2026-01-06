@@ -1,7 +1,9 @@
 from typing import Optional
 
+from psycopg_pool import AsyncConnectionPool
+
 async def upsert_user(
-  conn,
+  conn:AsyncConnectionPool,
   email:str,
   name:str,
   auth_type:str="password",

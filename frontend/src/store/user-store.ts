@@ -4,7 +4,14 @@ interface ChatLabel {
   label: string;
 }
 
-interface UserState {
+const initialState = {
+  isLoggedIn: false,
+  name: "",
+  email: "",
+  chatHistory: [] as ChatLabel[],
+}
+
+type UserState = typeof initialState & {
   isLoggedIn: boolean;
   setIsLoggedIn: (v: boolean) => void;
   name: string;
@@ -12,14 +19,14 @@ interface UserState {
   email: string;
   setEmail: (v: string) => void;
   chatHistory: ChatLabel[];
+  reset: () => void;
 }
 
 export const useUserStore = create<UserState>((set) => ({
-  isLoggedIn: false,
+  ...initialState,
   setIsLoggedIn: (v) => set({ isLoggedIn: v }),
-  name: "",
   setName: (v) => set({ name: v }),
-  email: "",
-  setEmail: (v) => set({ email: v })
+  setEmail: (v) => set({ email: v }),
+  reset: () => set(() => initialState),
 }));
 

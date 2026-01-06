@@ -1,4 +1,4 @@
-from typing import Optional, Union, Dict
+from typing import Optional, Union, Dict, List
 
 import redis.asyncio as redis
 
@@ -19,24 +19,44 @@ class RedisClient:
   async def q_get(self, q_key:str) -> str:
     return (await self.client.brpop(q_key))
 
-  async def add_chat_message(self, key:str, payload:str):
-    ttl = settings.CACHE_CHAT_GUEST_TTL_SECS if key.startswith("thread:guest:") else settings.CACHE_CHAT_AUTH_TTL_SECS
+  async def add_to_set(self, key:str, item:str, ttl:Optional[int]=None):
     async with self.client.pipeline() as pipe:
-      pipe.rpush(key, payload)
+      pipe.sadd(key, item)
+      if ttl is not None:
+        pipe.expire(key, ttl)
+      await pipe.execute()
+
+  async def is_set_member(self, key:str, item:str) -> bool:
+    return (await self.client.sismember(key, item))
+
+  async def remove_from_set(self, key:str, value:str):
+    await self.client.srem(key, value)
+
+  async def add_chat_message(
+    self,
+    key:str,
+    payload:Union[List[str],str],
+    limit:int=settings.CACHE_MSGS_CTX_LIMIT
+  ):
+    ttl = settings.CACHE_CHAT_GUEST_TTL_SECS if key.startswith("thread:guest:") \
+      else settings.CACHE_CHAT_AUTH_TTL_SECS
+    async with self.client.pipeline() as pipe:
+      pipe.rpush(key, *(payload if type(payload) == list else [payload]))
+      pipe.ltrim(key, -limit, -1)
       pipe.expire(key, ttl)
       await pipe.execute()
 
-  async def get_chat_history(self, key:str, limit:int=5):
-    return await self.client.lrange(key, -limit, -1)
+  async def get_chat_history(
+    self, key:str
+  ) -> List[str]:
+    return (await self.client.lrange(key, 0, -1))
 
   async def add_key_value(self, key:str, value:str, ttl:Optional[int]=None):
-    if ttl is None:
-      await self.client.set(key, value)
-    else:
-      async with self.client.pipeline() as pipe:
-        pipe.set(key, value)
+    async with self.client.pipeline() as pipe:
+      pipe.set(key, value)
+      if ttl is not None:
         pipe.expire(key, ttl)
-        await pipe.execute()
+      await pipe.execute()
 
   async def get_key_value(self, key:str) -> Optional[str]:
     return await self.client.get(key)

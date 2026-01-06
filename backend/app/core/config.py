@@ -13,6 +13,8 @@ class settings(BaseSettings):
     case_sensitive = True
   )
 
+  GENAI_SERVICE_DEFAULT:str
+
   APP_NAME:str = "superchat"
   APP_ENV:str
   APP_FRONTEND_URL:str
@@ -28,6 +30,7 @@ class settings(BaseSettings):
   CACHE_AI_RESP_KEY:str = "ai_resp:writeback"
   CACHE_CHAT_AUTH_TTL_SECS:int = 30 * 24 * 60 * 60
   CACHE_CHAT_GUEST_TTL_SECS:int = 60 * 60
+  CACHE_MSGS_CTX_LIMIT:int = 15
 
   ALLOW_ORIGINS:List[str] = [
     "http://localhost",

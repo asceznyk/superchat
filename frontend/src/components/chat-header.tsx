@@ -1,12 +1,14 @@
-import { useEffect } from 'react';
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-import { getUserProfile, logoutUser } from '@/api/auth'
 import { useUserStore } from '@/store/user-store'
+import { useChatStore } from '@/store/chat-store'
+
+import { performLogout } from '@/services/auth'
+import { getUserProfile, logoutUser } from '@/api/auth'
 
 import { Button } from "@/components/ui/button"
 import { AuthDialog } from "@/components/auth-dialog"
-
-//import { TypographyH4 } from "@/components/ui/typography"
 
 function TypographyH3Link({ text }: { text: string }) {
   return (
@@ -36,9 +38,10 @@ export function ChatHeader() {
   const baseBtn = `rounded-full cursor-pointer`;
   const isLoggedIn = useUserStore(s => s.isLoggedIn)
   const setIsLoggedIn = useUserStore(s => s.setIsLoggedIn)
+  const navigate = useNavigate()
   const handleClickLogout = async () => {
-    const res = await logoutUser()
-    setIsLoggedIn(false)
+    performLogout()
+    navigate('/')
   }
   useEffect(() => {
     (async () => {

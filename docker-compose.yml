@@ -54,7 +54,8 @@ services:
     container_name: postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_MAIN_DB: ${POSTGRES_MAIN_DB}
+      POSTGRES_TEST_DB: ${POSTGRES_TEST_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     networks:
