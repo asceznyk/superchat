@@ -1,11 +1,10 @@
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 
 import { useUserStore } from '@/store/user-store'
-import { useChatStore } from '@/store/chat-store'
 
+import { getUserProfile } from '@/api/auth'
 import { performLogout } from '@/services/auth'
-import { getUserProfile, logoutUser } from '@/api/auth'
 
 import { Button } from "@/components/ui/button"
 import { AuthDialog } from "@/components/auth-dialog"
@@ -36,18 +35,17 @@ export function ChatHeader() {
   py-3 px-4 bg-background border-b border-border
   `;
   const baseBtn = `rounded-full cursor-pointer`;
+  const { cid } = useParams()
   const isLoggedIn = useUserStore(s => s.isLoggedIn)
   const setIsLoggedIn = useUserStore(s => s.setIsLoggedIn)
-  const navigate = useNavigate()
   const handleClickLogout = async () => {
-    performLogout()
-    navigate('/')
+    await performLogout()
+    window.location.href = '/'
   }
   useEffect(() => {
     (async () => {
       const profile = await getUserProfile()
-      if (!profile) return;
-      setIsLoggedIn(true)
+      if (profile) setIsLoggedIn(true)
     })();
   }, []);
   return (

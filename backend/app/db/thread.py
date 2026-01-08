@@ -56,7 +56,8 @@ async def create_thread(
       return None
 
 async def create_thread_with_retry(
-  conn:AsyncConnectionPool, actor_id:str, thread_title:str, thread_id:str|None
+  conn:AsyncConnectionPool, actor_id:str,
+  thread_title:str, thread_id:str|None=None
 ) -> str:
   created_thread_id = await create_thread(
     conn,

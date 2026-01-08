@@ -34,11 +34,12 @@ class MessageStreamer():
     finally:
       self.payload['ai_resp'] = AIResponse(
         role = 'assistant',
-        msg_content = self.full_text
+        msg_content = self.full_text,
+        actor_id = self.payload['actor_id']
       ).model_dump_json()
       self.payload['is_auth'] = is_auth
       await redis_client.q_put(
-        settings.CACHE_AI_RESP_KEY, json.dumps(self.payload)
+        settings.CACHE_AI_RESP_WB, json.dumps(self.payload)
       )
 
 

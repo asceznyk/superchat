@@ -21,10 +21,6 @@ class AIChunkResponse(BaseModel):
 class AIResponse(BaseModel):
   role:str
   msg_content:Optional[str]
-
-class AILimitResponse(BaseModel):
-  msg_content:str
-  msg_type:str
-
+  actor_id:str
 
 

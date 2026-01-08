@@ -1,6 +1,8 @@
-import { useState } from "react"
+import { useState } from 'react'
 
-import { authGoogle } from "@/api/auth"
+import { useChatStore } from '@/store/chat-store'
+
+import { authGoogle } from '@/api/auth'
 
 import {
   Dialog,
@@ -38,8 +40,9 @@ export function AuthDialog({ text }: AuthDialogProps) {
   const [open, setOpen] = useState(false)
   const baseBtn = "rounded-full cursor-pointer"
   const baseInput = "rounded-full"
+  const chatId = useChatStore(s => s.chatId);
   const handleClickGoogle = async () => {
-    const uri = await authGoogle();
+    const uri = await authGoogle(`/chat/${chatId}`);
     window.location.href = uri;
   }
   return (

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { getChatHistory } from '@/api/chat-service'
+import { getChatHistory } from '@/api/chat'
 import { getUserProfile } from '@/api/auth'
 import { useUserStore } from '@/store/user-store'
 import { useChatStore } from '@/store/chat-store'

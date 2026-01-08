@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid"
 
 import { useNavigate } from "react-router-dom"
 import { useChatStore } from "@/store/chat-store"
-import { streamChatResponse, createChatId } from "@/api/chat-service"
+import { streamChatResponse, createChatId } from "@/api/chat"
 
 import { CHAT_CONFIG } from "@/config/chat"
 

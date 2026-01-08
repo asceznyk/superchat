@@ -12,7 +12,9 @@ from google.auth.transport import requests
 from app.core.config import settings
 from app.db.connection import get_db
 from app.db.user import upsert_user
-from app.services.auth import issue_jwt_pair, secure_cookie
+from app.services.auth import (
+  issue_jwt_pair, secure_cookie, get_current_guest, promote_guest_thread
+)
 from app.services.cache import redis_client
 
 router = APIRouter()
@@ -28,8 +30,17 @@ def verify_google_id_token(token:str) -> dict:
   except ValueError:
     return {}
 
+def validate_chat_path(path:str) -> str:
+  if path == "":
+    return path
+  if not path.startswith("/chat"):
+    raise HTTPException(400, detail="invalid path")
+  if "://" in path or path.startswith("//"):
+    raise HTTPException(400, detail="invalid path")
+  return path
+
 @router.get("/")
-async def get_auth_uri() -> str:
+async def get_auth_uri(cpath:str) -> str:
   state = secrets.token_urlsafe(32)
   params = {
     "client_id": settings.GOOGLE_OAUTH_CLIENT_ID,
@@ -40,17 +51,23 @@ async def get_auth_uri() -> str:
     "state": state
   }
   auth_uri = f"{settings.GOOGLE_OAUTH_AUTH_URI}?{urlencode(params)}"
-  await redis_client.add_key_value(state, 1)
+  await redis_client.add_key_value(
+    f"{settings.CACHE_PREFIX_OAUTH_STATE}:{state}", validate_chat_path(cpath),
+    ttl = settings.CACHE_OAUTH_STATE_TTL_SECS
+  )
   return auth_uri
 
 @router.get("/callback")
-async def set_session_cookies(req:Request, state:str, code:str, conn=Depends(get_db)):
-  issued = await redis_client.get_key_value(state)
-  if not issued:
+async def set_session_cookies(
+  state:str, code:str, req:Request,
+  guest=Depends(get_current_guest), conn=Depends(get_db)
+):
+  chat_path = await redis_client.get_key_value(f"{settings.CACHE_PREFIX_OAUTH_STATE}:{state}")
+  if chat_path is None or not len(chat_path):
     raise HTTPException(
       status_code=401, detail="state hasn't been issued"
     )
-  await redis_client.delete_key_value(state)
+  await redis_client.delete_key_value(f"{settings.CACHE_PREFIX_OAUTH_STATE}:{state}")
   resp = None
   async with httpx.AsyncClient() as http_client:
     resp = await http_client.post(
@@ -72,7 +89,7 @@ async def set_session_cookies(req:Request, state:str, code:str, conn=Depends(get
   if not info:
     raise HTTPException(
       status_code=400, detail="id_token is not verifed!"
-   )
+    )
   user_id, actor_id = await upsert_user(
     conn=conn,
     email=info['email'],
@@ -80,14 +97,19 @@ async def set_session_cookies(req:Request, state:str, code:str, conn=Depends(get
     auth_type='oauth',
     auth_provider='google'
   )
-  jwt_payload = {
+  payload = {
     "sub": str(user_id),
-    "actor": str(actor_id),
+    "aid": str(actor_id),
     "email": info["email"],
     "name": info.get("name", ""),
   }
-  access_token, refresh_token = await issue_jwt_pair(jwt_payload)
-  resp = RedirectResponse(url="http://localhost/") # change hardcoded URL
+  access_token, refresh_token = await issue_jwt_pair(payload)
+  resp = await promote_guest_thread(
+    conn, str(actor_id), guest.get('gid'),
+    chat_path.split('/')[-1]
+  )
+  if req.cookies.get('guest_id'):
+    resp.delete_cookie('guest_id')
   resp.set_cookie(**secure_cookie(
     "session_id",
     access_token,
@@ -98,8 +120,6 @@ async def set_session_cookies(req:Request, state:str, code:str, conn=Depends(get
     refresh_token,
     max_age=(settings.JWT_REFRESH_TTL_MINS*60)
   ))
-  if req.cookies.get('guest_id'):
-    resp.delete_cookie('guest_id')
   return resp
 
 

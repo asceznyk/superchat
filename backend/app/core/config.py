@@ -27,10 +27,21 @@ class settings(BaseSettings):
     "Keep your answers concise."
   )
 
-  CACHE_AI_RESP_KEY:str = "ai_resp:writeback"
+  CACHE_AI_RESP_WB:str = "ai:resp:writeback"
+
+  CACHE_PREFIX_OAUTH_STATE:str = "oauth:state"
+  CACHE_PREFIX_REFRESH_JTI:str = "refresh:jti"
+  CACHE_PREFIX_THREAD_OWNER:str = "thread:owner"
+  CACHE_PREFIX_CTX_THREAD:str = "ctx:thread"
+  CACHE_PREFIX_VIEW_THREAD:str = "view:thread"
+
+  CACHE_OAUTH_STATE_TTL_SECS:int = 2 * 60
   CACHE_CHAT_AUTH_TTL_SECS:int = 30 * 24 * 60 * 60
   CACHE_CHAT_GUEST_TTL_SECS:int = 60 * 60
+  CACHE_PROMOTE_TTL_SECS:int = 2 * 60
+
   CACHE_MSGS_CTX_LIMIT:int = 15
+  CACHE_MSGS_VIEW_LIMIT:int = 30
 
   ALLOW_ORIGINS:List[str] = [
     "http://localhost",

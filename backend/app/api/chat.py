@@ -22,21 +22,21 @@ from app.services.auth import (
 from app.services.stream import MessageStreamer
 
 from app.db.connection import get_db
-from app.db.message import insert_message, get_latest_messages
+from app.db.message import insert_messages_single, get_latest_messages
 from app.db.thread import create_thread_with_retry, owns_thread
 
 router = APIRouter()
 
 @router.post("/", response_model=ChatIdResponse)
 async def assign_thread_id(
-  msg_reg:MessageRequest,
-  response:JSONResponse,
+  msg_req:MessageRequest,
+  resp:JSONResponse,
   user:Dict=Depends(get_current_user),
   conn:AsyncConnectionPool=Depends(get_db)
 ) -> ChatIdResponse:
   gen_thread_id = str(uuid.uuid4())
   if user['authenticated']:
-    actor_id = user['actor']
+    actor_id = user['aid']
     created_thread_id = str(await create_thread_with_retry(
       conn,
       actor_id,
@@ -44,21 +44,22 @@ async def assign_thread_id(
       gen_thread_id
     ))
     await redis_client.add_to_set(
-      f"owner:auth:{actor_id}", created_thread_id
+      f"{settings.CACHE_PREFIX_THREAD_OWNER}:auth:{actor_id}",
+      created_thread_id
     )
     return ChatIdResponse(thread_id=created_thread_id)
-  resp = ChatIdResponse(thread_id=gen_thread_id)
+  cid_resp = ChatIdResponse(thread_id=gen_thread_id)
   payload = {
     "gid": str(uuid.uuid4()),
-    "typ": "guest"
+    "type": "guest"
   }
   guest_token = create_token(payload, token_type='guest')
-  response.set_cookie(**secure_cookie(
+  resp.set_cookie(**secure_cookie(
     "guest_id",
     guest_token,
     max_age=(settings.JWT_GUEST_TTL_MINS*60)
   ))
-  return resp
+  return cid_resp
 
 @router.get("/{thread_id}", response_model=None)
 async def load_converstaion_thread(
@@ -70,12 +71,14 @@ async def load_converstaion_thread(
   actor_type, actor_id = "guest", guest.get('gid')
   is_auth = user['authenticated']
   if is_auth:
-    actor_type, actor_id = "auth", user['actor']
-  thread_key = f"thread:{actor_type}:{actor_id}:{thread_id}"
-  history = await redis_client.get_chat_history(thread_key)
+    actor_type, actor_id = "auth", user['aid']
+  view_thread_key = f"{settings.CACHE_PREFIX_VIEW_THREAD}:{actor_type}:{actor_id}:{thread_id}"
+  ctx_thread_key = f"{settings.CACHE_PREFIX_CTX_THREAD}:{actor_type}:{actor_id}:{thread_id}"
+  history = await redis_client.get_chat_history(view_thread_key)
   if is_auth and len(history) <= 0:
     history = await get_latest_messages(conn, thread_id)
-    await redis_client.add_chat_message(thread_key, history)
+    await redis_client.add_chat_message(view_thread_key, history)
+    await redis_client.add_chat_message(ctx_thread_key, history)
   return JSONResponse(content = jsonable_encoder(
     [json.loads(s) for s in history]
   ))
@@ -83,39 +86,47 @@ async def load_converstaion_thread(
 @router.post("/{thread_id}", response_model=None)
 async def gen_ai_response(
   thread_id:str,
-  msg_reg:MessageRequest,
+  msg_req:MessageRequest,
   user:Dict=Depends(get_current_user),
   guest:Dict=Depends(get_current_guest),
   conn:AsyncConnectionPool=Depends(get_db)
 ) -> StreamingResponse:
-  is_auth = user["authenticated"]
-  if (not is_auth) and (not guest["verified"]):
+  is_auth = user['authenticated']
+  if (not is_auth) and (not guest['verified']):
     raise HTTPException(401, detail="no valid cookies!")
-  actor_type, actor_id = "guest", guest.get("gid")
+  actor_type, actor_id = "guest", guest.get('gid')
   if is_auth:
-    actor_type, actor_id = "auth", user['actor']
-    owner_key = f"owner:{actor_type}:{actor_id}"
+    actor_type, actor_id = "auth", user['aid']
+    owner_key = f"{settings.CACHE_PREFIX_THREAD_OWNER}:{actor_type}:{actor_id}"
     if not (await owns_thread(conn, owner_key, thread_id)):
       raise HTTPException(403, detail="no thread for current user")
-  thread_key = f"thread:{actor_type}:{actor_id}:{thread_id}"
+  view_thread_key = f"{settings.CACHE_PREFIX_VIEW_THREAD}:{actor_type}:{actor_id}:{thread_id}"
+  ctx_thread_key = f"{settings.CACHE_PREFIX_CTX_THREAD}:{actor_type}:{actor_id}:{thread_id}"
   await redis_client.add_chat_message(
-    thread_key, msg_reg.model_dump_json()
+    view_thread_key, msg_req.model_dump_json()
   )
   if is_auth:
-    await insert_message(
+    await redis_client.add_chat_message(
+      ctx_thread_key, msg_req.model_dump_json()
+    )
+    await insert_messages_single(
       conn,
       actor_id,
       thread_id,
-      msg_reg.msg_type,
-      msg_reg.msg_content
+      None,
+      msg_req.msg_type,
+      msg_req.msg_content
     )
-  history = await redis_client.get_chat_history(thread_key)
+  history = await redis_client.get_chat_history(
+    ctx_thread_key if is_auth else view_thread_key
+  )
   msg_streamer = MessageStreamer(
     response_stream = default_client.get_chat_response,
     chat_history = history,
     payload = {
-      "actor_id": msg_reg.ai_model_id,
-      "thread_key": thread_key
+      "actor_id": msg_req.ai_model_id,
+      "view_thread_key": view_thread_key,
+      "ctx_thread_key": ctx_thread_key
     }
   )
   resp = StreamingResponse(

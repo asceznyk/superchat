@@ -1,6 +1,6 @@
 import json
 
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 from psycopg_pool import AsyncConnectionPool
 
@@ -42,14 +42,14 @@ async def get_latest_messages(
     for r in rows
   ]
 
-async def insert_message(
+async def insert_messages(
   conn:AsyncConnectionPool,
-  actor_id:str,
-  thread_id:str,
-  msg_type:str,
-  msg_content:str,
-  branched_from_id:str|None = None,
-) -> Optional[tuple[str,str]]:
+  actor_ids:List[str],
+  thread_ids:List[str],
+  branched_from_ids:List[Optional[str]],
+  msg_types:List[str],
+  msg_contents:List[str],
+) -> List[Tuple[str,str]]:
   async with conn.cursor() as cur:
     await cur.execute(
       """
@@ -60,19 +60,43 @@ async def insert_message(
         msg_type,
         msg_content
       )
-      VALUES (%s, %s, %s, %s, %s)
+      SELECT *
+      FROM
+      UNNEST(
+        %s::uuid[],
+        %s::uuid[],
+        %s::uuid[],
+        %s::text[],
+        %s::text[]
+      )
       RETURNING id, created_at;
       """,
       (
-        actor_id,
-        thread_id,
-        branched_from_id,
-        msg_type,
-        msg_content,
+        actor_ids,
+        thread_ids,
+        branched_from_ids,
+        msg_types,
+        msg_contents,
       ),
     )
-    message_id, created_at = await cur.fetchone()
-    return message_id, created_at
+    return await cur.fetchall()
+
+async def insert_messages_single(
+  conn:AsyncConnectionPool,
+  actor_id:str,
+  thread_id:str,
+  branched_from_id:str|None,
+  msg_type:str,
+  msg_content:str,
+) -> List[Tuple[str,str]]:
+  return await insert_messages(
+    conn,
+    [actor_id],
+    [thread_id],
+    [branched_from_id],
+    [msg_type],
+    [msg_content],
+  )
 
 
 

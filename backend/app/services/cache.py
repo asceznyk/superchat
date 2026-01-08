@@ -36,9 +36,9 @@ class RedisClient:
     self,
     key:str,
     payload:Union[List[str],str],
-    limit:int=settings.CACHE_MSGS_CTX_LIMIT
+    limit:int=settings.CACHE_MSGS_VIEW_LIMIT
   ):
-    ttl = settings.CACHE_CHAT_GUEST_TTL_SECS if key.startswith("thread:guest:") \
+    ttl = settings.CACHE_CHAT_GUEST_TTL_SECS if ("guest" in key) \
       else settings.CACHE_CHAT_AUTH_TTL_SECS
     async with self.client.pipeline() as pipe:
       pipe.rpush(key, *(payload if type(payload) == list else [payload]))
