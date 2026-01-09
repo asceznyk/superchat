@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect } from 'react'
+import { useParams } from 'react-router-dom'
 
 import { getChatHistory } from '@/api/chat'
 import { getUserProfile } from '@/api/auth'
@@ -7,35 +7,41 @@ import { useUserStore } from '@/store/user-store'
 import { useChatStore } from '@/store/chat-store'
 
 import ChatLayout from '@/components/chat-layout'
+import { Button } from '@/components/ui/button'
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
-import { AppSidebar } from '@/components/sidebar'
+import { AppSidebar } from '@/components/app-sidebar'
 
 export default function ChatPage() {
-  const { cid } = useParams();
+  let { cid } = useParams();
   const isLoggedIn = useUserStore(s => s.isLoggedIn)
   const chatId = useChatStore(s => s.chatId)
   const setChatId = useChatStore(s => s.setChatId)
   const setMessageHistory = useChatStore(s => s.setMessageHistory)
   useEffect(() => {
-    if (!cid || cid === chatId) return;
+    if (cid === chatId) return;
     (async () => {
-      setChatId(cid);
-      const history = await getChatHistory(cid);
-      setMessageHistory(history);
+      setChatId(cid)
+      if (!cid) {
+        setMessageHistory([]);
+        return;
+      };
+      setMessageHistory(await getChatHistory(cid))
     })();
   }, [cid]);
   return (
-    <div className="relative flex flex-col md:flex-row h-full w-full overflow-hidden">
-      {/*isLoggedIn && (
-        <div className="flex md:w-auto w-full">
+    <div className="relative flex flex-row h-screen w-screen overflow-hidden">
+      {isLoggedIn && (
+        <div className="flex shrink-0 h-full border-r">
           <SidebarProvider defaultOpen={false}>
             <AppSidebar />
-            <main>
-              <SidebarTrigger />
-            </main>
+              <div className="bg-sidebar">
+                <div className="py-3 px-1">
+                  <SidebarTrigger className="text-2xl font-semibold" />
+                </div>
+              </div>
           </SidebarProvider>
         </div>
-      )*/}
+      )}
       <ChatLayout />
     </div>
   );

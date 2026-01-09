@@ -6,8 +6,8 @@ import { useUserStore } from '@/store/user-store'
 import { getUserProfile } from '@/api/auth'
 import { performLogout } from '@/services/auth'
 
-import { Button } from "@/components/ui/button"
-import { AuthDialog } from "@/components/auth-dialog"
+import { Button } from '@/components/ui/button'
+import { AuthDialog } from '@/components/auth-dialog'
 
 function TypographyH3Link({ text }: { text: string }) {
   return (
@@ -31,7 +31,7 @@ export function UserProfile({ name }: UserProfileProps) {
 
 export function ChatHeader() {
   const baseHeader = `
-  flex fixed top-0 w-full items-center justify-between
+  flex sticky top-0 w-full items-center justify-between
   py-3 px-4 bg-background border-b border-border
   `;
   const baseBtn = `rounded-full cursor-pointer`;

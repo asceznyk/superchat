@@ -5,14 +5,7 @@ import MarkdownMessage from "@/components/markdown-message"
 import TypingIndicator from "@/components/typing-indicator"
 import CopyButton from "@/components/copy-button"
 
-interface ChatWindowProps {
-  headerHeight: number
-  footerHeight: number
-}
-
-export function ChatWindow(
-  {headerHeight, footerHeight}: ChatWindowProps
-) {
+export function ChatWindow() {
   const messageHistory = useChatStore((s) => s.messageHistory);
   const hasResponded = useChatStore((s) => s.hasResponded);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -38,12 +31,7 @@ export function ChatWindow(
   return (
     <div
       ref={containerRef}
-      className="overflow-y-auto px-4 w-full max-w-[750px] mx-auto"
-      style={{
-        marginTop: headerHeight,
-        marginBottom: footerHeight + 20,
-        height: `calc(100vh - ${headerHeight + footerHeight + 20}px)`
-      }}
+      className="overflow-y-auto px-4 w-full h-full max-w-[750px] mx-auto my-4"
     >
       <div>
       {messageHistory.map((m, i) => (

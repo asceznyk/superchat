@@ -15,6 +15,8 @@ export const setLogoutHandler = (fn:() => void) => {
 let isRefreshing = false;
 let refreshPromise: Promise<void> | null = null;
 
+api.defaults.withCredentials = true;
+
 api.interceptors.response.use(
   res => res,
   async error => {

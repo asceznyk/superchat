@@ -18,18 +18,22 @@ from app.services.cache import redis_client
 from app.db.thread import create_thread_with_retry
 from app.db.message import insert_messages
 
-def secure_cookie(
-  key:str, value:str, max_age:int|None=None
+def cookie_attrs(
+  key:str, value:str|None=None, max_age:int|None=None
 ) -> Dict[str,str]:
-  return {
+  cookie = {
     'key': key,
     'value': value,
     'httponly': True,
     'samesite': "lax",
-    'secure': (settings.APP_ENV != "development"),
+    'secure': (not (settings.APP_ENV in ["development", "testing"])),
     'path': "/",
     'max_age': max_age
   }
+  if not value:
+    del cookie['value']
+    del cookie['max_age']
+  return cookie
 
 def create_token(
   data:dict, *, token_type:Literal['access','refresh','guest']

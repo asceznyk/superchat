@@ -17,7 +17,7 @@ from app.models.states import MessageRequest, ChatIdResponse, AIResponse
 
 from app.services.cache import redis_client
 from app.services.auth import (
-  secure_cookie, create_token, get_current_user, get_current_guest
+  cookie_attrs, create_token, get_current_user, get_current_guest
 )
 from app.services.stream import MessageStreamer
 
@@ -54,7 +54,7 @@ async def assign_thread_id(
     "type": "guest"
   }
   guest_token = create_token(payload, token_type='guest')
-  resp.set_cookie(**secure_cookie(
+  resp.set_cookie(**cookie_attrs(
     "guest_id",
     guest_token,
     max_age=(settings.JWT_GUEST_TTL_MINS*60)
@@ -70,6 +70,8 @@ async def load_converstaion_thread(
 ) -> JSONResponse:
   actor_type, actor_id = "guest", guest.get('gid')
   is_auth = user['authenticated']
+  if (not is_auth) and (not guest['verified']):
+    raise HTTPException(401, detail="no valid cookies!")
   if is_auth:
     actor_type, actor_id = "auth", user['aid']
   view_thread_key = f"{settings.CACHE_PREFIX_VIEW_THREAD}:{actor_type}:{actor_id}:{thread_id}"

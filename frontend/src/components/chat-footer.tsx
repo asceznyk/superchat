@@ -134,7 +134,7 @@ export function ChatFooter({onHeightChange}: ChatFooterProps) {
   return (
     <div
       ref={footerRef}
-      className="flex flex-col w-full fixed bottom-0 bg-background"
+      className="flex flex-col w-full sticky bottom-0 bg-background"
     >
       <div className="w-full max-w-[750px] mx-auto">
         {

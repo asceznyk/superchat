@@ -1,14 +1,15 @@
 import { create } from "zustand";
 
-interface ChatLabel {
-  label: string;
+interface ThreadLabel {
+  id: string
+  title: string
 }
 
 const initialState = {
   isLoggedIn: false,
   name: "",
   email: "",
-  chatHistory: [] as ChatLabel[],
+  threadHistory: [] as ThreadLabel[],
 }
 
 type UserState = typeof initialState & {
@@ -18,7 +19,8 @@ type UserState = typeof initialState & {
   setName: (v: string) => void;
   email: string;
   setEmail: (v: string) => void;
-  chatHistory: ChatLabel[];
+  threadHistory: ThreadLabel[];
+  setThreadHistory: (threads: ThreadLabel[]) => void;
   reset: () => void;
 }
 
@@ -27,6 +29,14 @@ export const useUserStore = create<UserState>((set) => ({
   setIsLoggedIn: (v) => set({ isLoggedIn: v }),
   setName: (v) => set({ name: v }),
   setEmail: (v) => set({ email: v }),
+  setThreadHistory: (threads) =>
+    set({
+      threadHistory: threads.map((item) => ({
+        id: item.id,
+        title: item.thread_title,
+        pinned: item.is_pinned
+      })),
+    }),
   reset: () => set(() => initialState),
 }));
 

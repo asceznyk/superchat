@@ -13,7 +13,7 @@ from app.core.config import settings
 from app.db.connection import get_db
 from app.db.user import upsert_user
 from app.services.auth import (
-  issue_jwt_pair, secure_cookie, get_current_guest, promote_guest_thread
+  issue_jwt_pair, cookie_attrs, get_current_guest, promote_guest_thread
 )
 from app.services.cache import redis_client
 
@@ -59,7 +59,7 @@ async def get_auth_uri(cpath:str) -> str:
 
 @router.get("/callback")
 async def set_session_cookies(
-  state:str, code:str, req:Request,
+  state:str, code:str,
   guest=Depends(get_current_guest), conn=Depends(get_db)
 ):
   chat_path = await redis_client.get_key_value(f"{settings.CACHE_PREFIX_OAUTH_STATE}:{state}")
@@ -108,14 +108,13 @@ async def set_session_cookies(
     conn, str(actor_id), guest.get('gid'),
     chat_path.split('/')[-1]
   )
-  if req.cookies.get('guest_id'):
-    resp.delete_cookie('guest_id')
-  resp.set_cookie(**secure_cookie(
+  resp.delete_cookie(**cookie_attrs("guest_id"))
+  resp.set_cookie(**cookie_attrs(
     "session_id",
     access_token,
     max_age=(settings.JWT_ACCESS_TTL_MINS*60)
   ))
-  resp.set_cookie(**secure_cookie(
+  resp.set_cookie(**cookie_attrs(
     "session_refresh",
     refresh_token,
     max_age=(settings.JWT_REFRESH_TTL_MINS*60)

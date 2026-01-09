@@ -1,3 +1,5 @@
+from typing import List, Dict
+
 from sqlalchemy import text
 from psycopg.errors import UniqueViolation
 
@@ -108,5 +110,34 @@ async def owns_thread(
     return False
   await redis_client.add_to_set(owner_key, thread_id)
   return True
+
+async def get_user_threads(
+  conn:AsyncConnectionPool, actor_id:str
+) -> List[Dict]:
+  async with conn.cursor() as cur:
+    await cur.execute(
+      """
+      SELECT
+        id,
+        thread_title,
+        is_pinned,
+        updated_at
+      FROM threads
+      WHERE actor_id = %s
+      ORDER BY updated_at DESC;
+      """,
+      (actor_id,),
+    )
+
+    rows = await cur.fetchall()
+  return [
+    {
+      "id": r[0],
+      "thread_title": r[1],
+      "is_pinned": r[2],
+      "updated_at": r[3],
+    }
+    for r in rows
+  ]
 
 

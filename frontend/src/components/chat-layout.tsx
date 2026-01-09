@@ -8,9 +8,9 @@ export default function ChatLayout() {
   const headerHeight = 80;
   const [footerHeight, setFooterHeight] = useState(headerHeight);
   return (
-    <div className="flex flex-col flex-grow w-full">
+    <div className="flex flex-col flex-grow">
       <ChatHeader />
-      <ChatWindow headerHeight={headerHeight} footerHeight={footerHeight}/>
+      <ChatWindow />
       <ChatFooter onHeightChange={setFooterHeight}/>
     </div>
   )
