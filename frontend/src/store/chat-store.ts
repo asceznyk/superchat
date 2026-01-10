@@ -10,6 +10,7 @@ interface ChatMessage {
 const initialState = {
   chatId: "",
   userInput: "",
+  startChat: false,
   messageHistory: [] as ChatMessage[],
   isStreaming: false,
   abortController: null as AbortController | null,
@@ -22,6 +23,8 @@ type ChatState = typeof initialState & {
   setChatId: (text: string) => void;
   userInput: string;
   setUserInput: (text: string) => void;
+  startChat: boolean;
+  setStartChat: (v: boolean) => void;
   messageHistory: ChatMessage[];
   setMessageHistory: (history: ChatMessage[]) => void;
   addUserMessage: (msg: ChatMessage) => void;
@@ -39,6 +42,7 @@ type ChatState = typeof initialState & {
 export const useChatStore = create<ChatState>((set) => ({
   ...initialState,
   setUserInput: (text) => set({ userInput: text }),
+  setStartChat: (v) => set({ startChat: v }),
   setChatId: (text) => set({ chatId: text }),
   setMessageHistory: (history) =>
     set({

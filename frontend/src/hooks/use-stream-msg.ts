@@ -2,7 +2,9 @@ import { v4 as uuidv4 } from "uuid"
 
 import { useNavigate } from "react-router-dom"
 import { useChatStore } from "@/store/chat-store"
+import { useUserStore } from "@/store/user-store"
 import { streamChatResponse, createChatId } from "@/api/chat"
+import { getUserThreads } from "@/api/auth"
 
 import { CHAT_CONFIG } from "@/config/chat"
 
@@ -16,9 +18,11 @@ function throwServerError(err:Object, errorFunc: (err:Object) => void) {
 
 export function useStreamMessage() {
   const userInput = useChatStore((s) => s.userInput);
+  const startChat = useChatStore((s) => s.startChat);
   const chatId = useChatStore((s) => s.chatId);
   const abortController = useChatStore((s) => s.abortController);
   const setUserInput = useChatStore((s) => s.setUserInput);
+  const setStartChat = useChatStore((s) => s.setStartChat);
   const setChatId = useChatStore((s) => s.setChatId);
   const addUserMessage = useChatStore((s) => s.addUserMessage);
   const addAssistantMessage = useChatStore((s) => s.addAssistantMessage);
@@ -27,6 +31,7 @@ export function useStreamMessage() {
   const setAbortController = useChatStore((s) => s.setAbortController);
   const setHasResponded = useChatStore((s) => s.setHasResponded);
   const setError = useChatStore((s) => s.setError);
+  const setThreadHistory = useUserStore(s => s.setThreadHistory);
   const navigate = useNavigate();
   const gracefulError = (err:Object) => {
     throwServerError(err, setError)
@@ -37,9 +42,9 @@ export function useStreamMessage() {
       return;
     let cid = chatId;
     if (!cid) {
-      cid = await createChatId();
-      setChatId(cid);
-      navigate(`/chat/${cid}`);
+      cid = await createChatId()
+      setChatId(cid)
+      navigate(`/chat/${cid}`)
     }
     setHasResponded(false);
     const ac = new AbortController();
@@ -63,6 +68,10 @@ export function useStreamMessage() {
     } catch (err) {
       gracefulError(err)
       return;
+    }
+    if (!startChat) {
+      setStartChat(true)
+      setThreadHistory(await getUserThreads())
     }
     try {
       setIsStreaming(true);

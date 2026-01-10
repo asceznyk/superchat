@@ -140,4 +140,21 @@ async def get_user_threads(
     for r in rows
   ]
 
+async def touch_thread(
+  conn:AsyncConnectionPool,
+  actor_id:str,
+  thread_id:str,
+) -> bool:
+  async with conn.cursor() as cur:
+    await cur.execute(
+      """
+      UPDATE threads
+      SET updated_at = now()
+      WHERE id = %s
+        AND actor_id = %s;
+      """,
+      (thread_id, actor_id),
+    )
+    return cur.rowcount == 1
+
 

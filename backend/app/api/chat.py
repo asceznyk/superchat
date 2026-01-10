@@ -23,7 +23,7 @@ from app.services.stream import MessageStreamer
 
 from app.db.connection import get_db
 from app.db.message import insert_messages_single, get_latest_messages
-from app.db.thread import create_thread_with_retry, owns_thread
+from app.db.thread import create_thread_with_retry, owns_thread, touch_thread
 
 router = APIRouter()
 
@@ -119,6 +119,7 @@ async def gen_ai_response(
       msg_req.msg_type,
       msg_req.msg_content
     )
+    await touch_thread(conn, actor_id, thread_id)
   history = await redis_client.get_chat_history(
     ctx_thread_key if is_auth else view_thread_key
   )

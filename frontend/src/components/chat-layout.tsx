@@ -29,9 +29,7 @@ export default function ChatLayout() {
         setMessageHistory([]);
         return;
       };
-      const history = await getChatHistory(cid)
-      console.log(history)
-      setMessageHistory(history)
+      setMessageHistory(await getChatHistory(cid))
     })();
   }, [cid]);
   return (

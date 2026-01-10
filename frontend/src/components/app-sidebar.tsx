@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useUserStore } from '@/store/user-store'
+import { useChatStore } from '@/store/chat-store'
 
 import { getUserThreads } from '@/api/auth'
 
@@ -24,6 +25,7 @@ import {
 export function AppSidebar() {
   const threadHistory = useUserStore(s => s.threadHistory)
   const setThreadHistory = useUserStore(s => s.setThreadHistory)
+  const setStartChat = useChatStore(s => s.setStartChat)
   const navigate = useNavigate()
   const handleClick = async (threadId:string) => {
     if (!threadId) {
@@ -31,6 +33,7 @@ export function AppSidebar() {
       return
     }
     navigate(`/chat/${threadId}`)
+    setStartChat(false)
   }
   useEffect(() => {
     (async () => {
