@@ -245,14 +245,19 @@ function SidebarTrigger({
       data-sidebar="trigger"
       data-slot="sidebar-trigger"
       variant="ghost"
-      className={cn("text-2xl", className)}
+      className={
+        cn(
+          "text-2xl dark:hover:bg-transparent cursor-context-menu py-0",
+          className
+        )
+      }
       onClick={(event) => {
         onClick?.(event)
         toggleSidebar()
       }}
       {...props}
     >
-      <PanelLeftIcon />
+      <PanelLeftIcon className="mb-[4px]" />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   )

@@ -19,11 +19,11 @@ export function ChatWindow() {
   }, [messageHistory]);
   const defaultClass = "group mb-4 ";
   const userDivClass = "ml-auto w-fit max-w-[85%]";
-  const userBubbleClass = `
+  const userBubble = `
     break-words whitespace-pre-wrap bg-gray-600
     text-white p-3 rounded-xl mb-[10px]
   `;
-  const assistantBubbleClass = `
+  const assistantBubble = `
     w-fit break-words whitespace-normal max-w-[100%]
     text-white mr-auto mb-[10px]
   `;
@@ -42,7 +42,7 @@ export function ChatWindow() {
           <div
             className={
               lastChildPTagClass +
-              (m.role === "user" ? userBubbleClass : assistantBubbleClass)
+              (m.role === "user" ? userBubble : assistantBubble)
             }
           >
             {

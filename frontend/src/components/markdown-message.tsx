@@ -66,9 +66,10 @@ export default function MarkdownMessage({ text }: MarkdownMessageProps) {
           <li className="my-0" {...props} />
         ),
         table: ({ node, ...props }) => (
-          <div className="overflow-x-scroll ">
+          <div className="overflow-x-auto min-w-0">
             <table
-              className="w-full border-collapse my-2 text-left" {...props}
+              className="w-full table-fixed border-collapse my-2 text-left"
+              {...props}
             />
           </div>
         ),
@@ -83,12 +84,27 @@ export default function MarkdownMessage({ text }: MarkdownMessageProps) {
         ),
         code({ inline, className, children, ...props }) {
           const match = /language-(\w+)/.exec(className || "");
+          const text = String(children);
+          const isMultiline = text.includes("\n");
           if (inline || !match) {
             return (
-              <code className="
-                inline-block max-w-full bg-gray-800 overflow-x-auto
-                text-gray-200 px-1 py-0.5 rounded
-              ">
+              <code className={
+                isMultiline
+                ? `
+                  block w-full max-w-full
+                  bg-gray-800 text-gray-100
+                  px-2 py-2 rounded
+                  overflow-x-auto
+                  whitespace-pre-wrap
+                  break-all
+                `
+                : `
+                  inline
+                  bg-gray-800 text-gray-100
+                  px-1 py-0 rounded
+                  break-all
+                `
+              }>
                 {children}
               </code>
             );

@@ -11,7 +11,6 @@ import {
 
 import {
   Sidebar,
-  SidebarTrigger,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,

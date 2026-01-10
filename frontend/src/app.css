@@ -10,7 +10,6 @@
   scrollbar-width: none;
 }
 
-
 button:focus {
   outline: none !important;
   box-shadow: none !important;

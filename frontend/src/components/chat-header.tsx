@@ -9,6 +9,8 @@ import { performLogout } from '@/services/auth'
 import { Button } from '@/components/ui/button'
 import { AuthDialog } from '@/components/auth-dialog'
 
+import { SidebarTrigger } from '@/components/ui/sidebar'
+
 function TypographyH3Link({ text }: { text: string }) {
   return (
     <h3 className="text-2xl font-semibold">
@@ -34,6 +36,7 @@ export function ChatHeader() {
   flex sticky top-0 w-full items-center justify-between
   py-3 px-4 bg-background border-b border-border
   `;
+  const baseText = "Superchat"
   const baseBtn = `rounded-full cursor-pointer`;
   const { cid } = useParams()
   const isLoggedIn = useUserStore(s => s.isLoggedIn)
@@ -50,22 +53,31 @@ export function ChatHeader() {
   }, []);
   return (
     <div className={baseHeader}>
-      <TypographyH3Link text="Superchat" />
-        <div className="flex gap-2">
-        {isLoggedIn ?
-          (
-            <Button
-              className={baseBtn}
-              variant="outline"
-              onClick={handleClickLogout}
-            >
-              Logout
-            </Button>
-          )
-        : (
-            <AuthDialog text="Login or Register" />
-        )}
-        </div>
+      {
+        isLoggedIn ? (
+          <div className="flex">
+            <SidebarTrigger />
+            <TypographyH3Link text={baseText} />
+          </div>
+        ) : (
+          <TypographyH3Link text={baseText} />
+        )
+      }
+      <div className="flex gap-2">
+      {isLoggedIn ?
+        (
+          <Button
+            className={baseBtn}
+            variant="outline"
+            onClick={handleClickLogout}
+          >
+            Logout
+          </Button>
+        )
+      : (
+          <AuthDialog text="Login or Register" />
+      )}
+      </div>
     </div>
   );
 }
