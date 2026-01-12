@@ -8,10 +8,6 @@ export const getUserProfile = () => unwrap(
   api.get('/auth/user/me', null, { withCredentials: true })
 );
 
-export const getUserThreads = () => unwrap(
-  api.get('/auth/user/threads', null, { withCredentials: true })
-)
-
 export const logoutUser = () => unwrap(
   api.post('/auth/user/logout', null, { withCredentials: true })
 );

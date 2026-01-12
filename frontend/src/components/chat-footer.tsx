@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react"
 import { useStreamMessage } from "@/hooks/use-stream-msg"
-import { useChatStore } from "@/store/chat-store"
+import { useThreadStore } from "@/store/thread-store"
 
 import { ArrowUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -15,8 +15,8 @@ interface PromptAreaProps {
 function PromptArea(
   { placeholder, onHeightChange, onSend }: PromptAreaProps
 ) {
-  const userInput = useChatStore((s) => s.userInput);
-  const setUserInput = useChatStore((s) => s.setUserInput);
+  const userInput = useThreadStore((s) => s.userInput);
+  const setUserInput = useThreadStore((s) => s.setUserInput);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     const el = textareaRef.current;
@@ -75,7 +75,7 @@ interface SendButtonProps {
 }
 
 function SendButton({ onSend, onStop }: SendButtonProps) {
-  const isStreaming = useChatStore((s) => s.isStreaming);
+  const isStreaming = useThreadStore((s) => s.isStreaming);
   return (
     <div className="flex items-end">
       {
@@ -112,8 +112,8 @@ interface ChatFooterProps {
 export function ChatFooter({onHeightChange}: ChatFooterProps) {
   const [inputHeight, setInputHeight] = useState(40);
   const footerRef = useRef<HTMLDivElement>(null);
-  const error = useChatStore((s) => s.error);
-  const setError = useChatStore((s) => s.setError);
+  const error = useThreadStore((s) => s.error);
+  const setError = useThreadStore((s) => s.setError);
   const classTextarea = `
     flex justify-between items-end border border-solid
     gap-2

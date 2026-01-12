@@ -1,10 +1,10 @@
 import { v4 as uuidv4 } from "uuid"
 
 import { useNavigate } from "react-router-dom"
-import { useChatStore } from "@/store/chat-store"
+import { useThreadStore } from "@/store/thread-store"
 import { useUserStore } from "@/store/user-store"
-import { streamChatResponse, createChatId } from "@/api/chat"
-import { getUserThreads } from "@/api/auth"
+import { createThreadId, getUserThreads } from "@/api/threads"
+import { streamChatResponse } from "@/api/messages"
 
 import { CHAT_CONFIG } from "@/config/chat"
 
@@ -17,20 +17,21 @@ function throwServerError(err:Object, errorFunc: (err:Object) => void) {
 }
 
 export function useStreamMessage() {
-  const userInput = useChatStore((s) => s.userInput);
-  const startChat = useChatStore((s) => s.startChat);
-  const chatId = useChatStore((s) => s.chatId);
-  const abortController = useChatStore((s) => s.abortController);
-  const setUserInput = useChatStore((s) => s.setUserInput);
-  const setStartChat = useChatStore((s) => s.setStartChat);
-  const setChatId = useChatStore((s) => s.setChatId);
-  const addUserMessage = useChatStore((s) => s.addUserMessage);
-  const addAssistantMessage = useChatStore((s) => s.addAssistantMessage);
-  const addAssistantMsgChunk = useChatStore((s) => s.addAssistantMsgChunk);
-  const setIsStreaming = useChatStore((s) => s.setIsStreaming);
-  const setAbortController = useChatStore((s) => s.setAbortController);
-  const setHasResponded = useChatStore((s) => s.setHasResponded);
-  const setError = useChatStore((s) => s.setError);
+  const userInput = useThreadStore((s) => s.userInput);
+  const startThread = useThreadStore((s) => s.startThread);
+  const threadId = useThreadStore((s) => s.threadId);
+  const abortController = useThreadStore((s) => s.abortController);
+  const setUserInput = useThreadStore((s) => s.setUserInput);
+  const setStartThread = useThreadStore((s) => s.setStartThread);
+  const setThreadId = useThreadStore((s) => s.setThreadId);
+  const addUserMessage = useThreadStore((s) => s.addUserMessage);
+  const addAssistantMessage = useThreadStore((s) => s.addAssistantMessage);
+  const addAssistantMsgChunk = useThreadStore((s) => s.addAssistantMsgChunk);
+  const setIsStreaming = useThreadStore((s) => s.setIsStreaming);
+  const setAbortController = useThreadStore((s) => s.setAbortController);
+  const setHasResponded = useThreadStore((s) => s.setHasResponded);
+  const setError = useThreadStore((s) => s.setError);
+  const isLoggedIn = useUserStore(s => s.isLoggedIn);
   const setThreadHistory = useUserStore(s => s.setThreadHistory);
   const navigate = useNavigate();
   const gracefulError = (err:Object) => {
@@ -40,10 +41,10 @@ export function useStreamMessage() {
   const streamMsg = async () => {
     if (!userInput.trim())
       return;
-    let cid = chatId;
+    let cid = threadId;
     if (!cid) {
-      cid = await createChatId()
-      setChatId(cid)
+      cid = await createThreadId()
+      setThreadId(cid)
       navigate(`/chat/${cid}`)
     }
     setHasResponded(false);
@@ -69,10 +70,6 @@ export function useStreamMessage() {
       gracefulError(err)
       return;
     }
-    if (!startChat) {
-      setStartChat(true)
-      setThreadHistory(await getUserThreads())
-    }
     try {
       setIsStreaming(true);
       let buffer = "";
@@ -96,6 +93,10 @@ export function useStreamMessage() {
         }
       }
       setIsStreaming(false)
+      if (isLoggedIn && !startThread) {
+        setStartThread(true)
+        setThreadHistory(await getUserThreads())
+      }
     } catch(err) {
       gracefulError(err)
       setIsStreaming(false)

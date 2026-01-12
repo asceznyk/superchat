@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { useUserStore } from '@/store/user-store'
-import { useChatStore } from '@/store/chat-store'
+import { useThreadStore } from '@/store/thread-store'
 
-import { getChatHistory } from '@/api/chat'
+import { getMessageHistory } from '@/api/messages'
 
 import { ChatHeader } from '@/components/chat-header'
 import { ChatWindow } from '@/components/chat-window'
@@ -18,18 +18,18 @@ export default function ChatLayout() {
   const [footerHeight, setFooterHeight] = useState(headerHeight);
   const { cid } = useParams()
   const isLoggedIn = useUserStore(s => s.isLoggedIn)
-  const chatId = useChatStore(s => s.chatId)
-  const setChatId = useChatStore(s => s.setChatId)
-  const setMessageHistory = useChatStore(s => s.setMessageHistory)
+  const threadId = useThreadStore(s => s.threadId)
+  const setThreadId = useThreadStore(s => s.setThreadId)
+  const setMessageHistory = useThreadStore(s => s.setMessageHistory)
   useEffect(() => {
-    if (cid === chatId) return;
+    if (cid === threadId) return;
     (async () => {
-      setChatId(cid)
+      setThreadId(cid)
       if (!cid) {
         setMessageHistory([]);
         return;
       };
-      setMessageHistory(await getChatHistory(cid))
+      setMessageHistory(await getMessageHistory(cid))
     })();
   }, [cid]);
   return (

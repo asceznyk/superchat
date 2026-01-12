@@ -1,13 +1,13 @@
 import { useRef, useEffect } from "react"
-import { useChatStore } from "@/store/chat-store"
+import { useThreadStore } from "@/store/thread-store"
 
 import MarkdownMessage from "@/components/markdown-message"
 import TypingIndicator from "@/components/typing-indicator"
 import CopyButton from "@/components/copy-button"
 
 export function ChatWindow() {
-  const messageHistory = useChatStore((s) => s.messageHistory);
-  const hasResponded = useChatStore((s) => s.hasResponded);
+  const messageHistory = useThreadStore((s) => s.messageHistory);
+  const hasResponded = useThreadStore((s) => s.hasResponded);
   const containerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = containerRef.current;

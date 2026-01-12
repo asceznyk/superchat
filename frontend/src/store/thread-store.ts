@@ -1,35 +1,35 @@
 import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
 
-interface ChatMessage {
+interface ThreadMessage {
   id: string;
   role: "user" | "assistant";
   msgContent: string;
 }
 
 const initialState = {
-  chatId: "",
+  threadId: "",
   userInput: "",
-  startChat: false,
-  messageHistory: [] as ChatMessage[],
+  startThread: false,
+  messageHistory: [] as ThreadMessage[],
   isStreaming: false,
   abortController: null as AbortController | null,
   hasResponded: true,
   error: null as { message: string } | null,
 };
 
-type ChatState = typeof initialState & {
-  chatId: string;
-  setChatId: (text: string) => void;
+type ThreadState = typeof initialState & {
+  threadId: string;
+  setThreadId: (text: string) => void;
   userInput: string;
   setUserInput: (text: string) => void;
-  startChat: boolean;
-  setStartChat: (v: boolean) => void;
-  messageHistory: ChatMessage[];
-  setMessageHistory: (history: ChatMessage[]) => void;
-  addUserMessage: (msg: ChatMessage) => void;
-  addAssistantMessage: (msg: ChatMessage) => void;
-  addAssistantMsgChunk: (msg: ChatMessage) => void;
+  startThread: boolean;
+  setStartThread: (v: boolean) => void;
+  messageHistory: ThreadMessage[];
+  setMessageHistory: (history: ThreadMessage[]) => void;
+  addUserMessage: (msg: ThreadMessage) => void;
+  addAssistantMessage: (msg: ThreadMessage) => void;
+  addAssistantMsgChunk: (msg: ThreadMessage) => void;
   isStreaming: boolean;
   setIsStreaming: (v: boolean) => void;
   abortController: AbortController | null;
@@ -39,11 +39,11 @@ type ChatState = typeof initialState & {
   setError: (v: { message:string  } | null) => void;
 }
 
-export const useChatStore = create<ChatState>((set) => ({
+export const useThreadStore = create<ThreadState>((set) => ({
   ...initialState,
   setUserInput: (text) => set({ userInput: text }),
-  setStartChat: (v) => set({ startChat: v }),
-  setChatId: (text) => set({ chatId: text }),
+  setStartThread: (v) => set({ startThread: v }),
+  setThreadId: (text) => set({ threadId: text }),
   setMessageHistory: (history) =>
     set({
       messageHistory: history.map((msg) => ({

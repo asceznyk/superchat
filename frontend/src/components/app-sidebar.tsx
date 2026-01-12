@@ -2,9 +2,9 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useUserStore } from '@/store/user-store'
-import { useChatStore } from '@/store/chat-store'
+import { useThreadStore } from '@/store/thread-store'
 
-import { getUserThreads } from '@/api/auth'
+import { getUserThreads } from '@/api/threads'
 
 import {
   MessageCirclePlus, Menu
@@ -25,7 +25,7 @@ import {
 export function AppSidebar() {
   const threadHistory = useUserStore(s => s.threadHistory)
   const setThreadHistory = useUserStore(s => s.setThreadHistory)
-  const setStartChat = useChatStore(s => s.setStartChat)
+  const setStartThread = useThreadStore(s => s.setStartThread)
   const navigate = useNavigate()
   const handleClick = async (threadId:string) => {
     if (!threadId) {
@@ -33,7 +33,7 @@ export function AppSidebar() {
       return
     }
     navigate(`/chat/${threadId}`)
-    setStartChat(false)
+    setStartThread(false)
   }
   useEffect(() => {
     (async () => {
