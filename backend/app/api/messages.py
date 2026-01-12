@@ -1,65 +1,28 @@
-import uuid
+from typing import Dict
+
 import json
 
-from typing import Optional, Dict, Union
-
-from fastapi import Cookie
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse, JSONResponse
-from fastapi import APIRouter, Depends, Header, HTTPException
 
 from psycopg_pool import AsyncConnectionPool
 
 from app.core.config import settings
 from app.core.service import default_client
-from app.core.utils import get_limit_response
 from app.models.states import MessageRequest, ChatIdResponse, AIResponse
 
 from app.services.cache import redis_client
 from app.services.auth import (
-  cookie_attrs, create_token, get_current_user, get_current_guest
+  get_current_user, get_current_guest
 )
 from app.services.stream import MessageStreamer
 
 from app.db.connection import get_db
 from app.db.message import insert_messages_single, get_latest_messages
-from app.db.thread import create_thread_with_retry, owns_thread, touch_thread
+from app.db.thread import owns_thread, touch_thread
 
 router = APIRouter()
-
-@router.post("/", response_model=ChatIdResponse)
-async def assign_thread_id(
-  msg_req:MessageRequest,
-  resp:JSONResponse,
-  user:Dict=Depends(get_current_user),
-  conn:AsyncConnectionPool=Depends(get_db)
-) -> ChatIdResponse:
-  gen_thread_id = str(uuid.uuid4())
-  if user['authenticated']:
-    actor_id = user['aid']
-    created_thread_id = str(await create_thread_with_retry(
-      conn,
-      actor_id,
-      "Chat",
-      gen_thread_id
-    ))
-    await redis_client.add_to_set(
-      f"{settings.CACHE_PREFIX_THREAD_OWNER}:auth:{actor_id}",
-      created_thread_id
-    )
-    return ChatIdResponse(thread_id=created_thread_id)
-  cid_resp = ChatIdResponse(thread_id=gen_thread_id)
-  payload = {
-    "gid": str(uuid.uuid4()),
-    "type": "guest"
-  }
-  guest_token = create_token(payload, token_type='guest')
-  resp.set_cookie(**cookie_attrs(
-    "guest_id",
-    guest_token,
-    max_age=(settings.JWT_GUEST_TTL_MINS*60)
-  ))
-  return cid_resp
 
 @router.get("/{thread_id}", response_model=None)
 async def load_converstaion_thread(

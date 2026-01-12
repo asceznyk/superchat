@@ -157,4 +157,20 @@ async def touch_thread(
     )
     return cur.rowcount == 1
 
+async def delete_thread(
+  conn:AsyncConnectionPool,
+  actor_id:str,
+  thread_id:str,
+) -> bool:
+  async with conn.cursor() as cur:
+    await cur.execute(
+      """
+      DELETE FROM threads
+      WHERE id = %s
+        AND actor_id = %s;
+      """,
+      (thread_id, actor_id),
+    )
+    return cur.rowcount == 1
+
 

@@ -4,10 +4,8 @@ from typing import Dict
 
 from jose import JWTError
 
-from fastapi import APIRouter, HTTPException, Cookie, Depends, Request
+from fastapi import APIRouter, HTTPException, Cookie, Depends
 from fastapi.responses import JSONResponse, RedirectResponse
-
-from psycopg_pool import AsyncConnectionPool
 
 from app.models.states import UserProfile
 from app.core.config import settings
@@ -16,14 +14,12 @@ from app.services.auth import (
   issue_jwt_pair, verify_token,
   get_current_user, get_current_guest, cookie_attrs
 )
-from app.db.connection import get_db
-from app.db.thread import create_thread_with_retry, get_user_threads
 
 router = APIRouter()
 
 @router.get("/me", response_model=UserProfile)
 def user_profile_info(
-  req:Request, user:Dict=Depends(get_current_user)
+  user:Dict=Depends(get_current_user)
 ) -> UserProfile:
   if not user['authenticated']:
     raise HTTPException(status_code=401, detail="token is not verified")
@@ -60,17 +56,6 @@ async def user_refresh_session(
     max_age=(settings.JWT_REFRESH_TTL_MINS*60)
   ))
   return resp
-
-@router.get("/threads")
-async def list_user_threads(
-  user:Dict=Depends(get_current_user),
-  conn:AsyncConnectionPool=Depends(get_db)
-):
-  is_auth = user['authenticated']
-  if not is_auth:
-    raise HTTPException(401, detail='action unauthorized!')
-  actor_id = user['aid']
-  return (await get_user_threads(conn, actor_id))
 
 @router.post("/logout")
 async def delete_session_cookies(

@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.models import states
-from app.api import chat, auth
+from app.api import auth, messages, threads
 from app.db.connection import db_pool
 from app.services.response_writeback import writeback_consumer
 
@@ -36,8 +36,9 @@ app.add_middleware(
   allow_headers=["*"],
 )
 
-app.include_router(chat.router, prefix="/chat")
 app.include_router(auth.user.router, prefix="/auth/user")
 app.include_router(auth.google.router, prefix="/auth/google")
+app.include_router(messages.router, prefix="/messages")
+app.include_router(threads.router, prefix="/threads")
 
 
