@@ -97,7 +97,7 @@ export function AppSidebar() {
                 >
                   <a>
                     <MessageCirclePlus />
-                    <span>Start Chat</span>
+                    <span>New Chat</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>

@@ -45,7 +45,7 @@ async def assign_thread_id(
     created_thread_id = str(await create_thread_with_retry(
       conn,
       actor_id,
-      "New Chat",
+      "Old Chat",
       gen_thread_id
     ))
     await redis_client.add_to_set(
