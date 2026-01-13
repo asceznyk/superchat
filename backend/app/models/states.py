@@ -11,7 +11,10 @@ class MessageRequest(BaseModel):
   msg_content:str
   ai_model_id:str
 
-class ChatIdResponse(BaseModel):
+class ThreadRenameRequest(BaseModel):
+  thread_title:str
+
+class ThreadIDResponse(BaseModel):
   thread_id:str
 
 class AIChunkResponse(BaseModel):

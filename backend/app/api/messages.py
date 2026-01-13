@@ -10,7 +10,7 @@ from psycopg_pool import AsyncConnectionPool
 
 from app.core.config import settings
 from app.core.service import default_client
-from app.models.states import MessageRequest, ChatIdResponse, AIResponse
+from app.models.states import MessageRequest
 
 from app.services.cache import redis_client
 from app.services.auth import (
@@ -25,7 +25,7 @@ from app.db.thread import owns_thread, touch_thread
 router = APIRouter()
 
 @router.get("/{thread_id}", response_model=None)
-async def load_converstaion_thread(
+async def get_user_messages(
   thread_id:str,
   user:Dict=Depends(get_current_user),
   guest:Dict=Depends(get_current_guest),

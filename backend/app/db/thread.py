@@ -157,6 +157,24 @@ async def touch_thread(
     )
     return cur.rowcount == 1
 
+async def rename_thread(
+  conn:AsyncConnectionPool,
+  actor_id:str,
+  thread_id:str,
+  thread_title:str
+) -> bool:
+  async with conn.cursor() as cur:
+    await cur.execute(
+      """
+      UPDATE threads
+      SET thread_title = %s
+      WHERE id = %s
+        AND actor_id = %s;
+      """,
+      (thread_title, thread_id, actor_id),
+    )
+    return cur.rowcount == 1
+
 async def delete_thread(
   conn:AsyncConnectionPool,
   actor_id:str,

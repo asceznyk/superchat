@@ -43,7 +43,8 @@ export function useStreamMessage() {
       return;
     let cid = threadId;
     if (!cid) {
-      cid = await createThreadId()
+      let resp = await createThreadId()
+      cid = resp.thread_id
       setThreadId(cid)
       navigate(`/chat/${cid}`)
     }
