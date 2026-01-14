@@ -14,7 +14,7 @@ export default function CopyButton({ text, isCode, pos }: CopyButtonProps) {
     setCopied(true);
     setTimeout(() => setCopied(false), 1200);
   };
-  const defaultClass = `
+  const baseBtn = `
     cursor-pointer
     opacity-0 group-hover:opacity-100
     transition-opacity
@@ -28,7 +28,7 @@ export default function CopyButton({ text, isCode, pos }: CopyButtonProps) {
   return (
     <button
       onClick={handleCopy}
-      className={defaultClass + (isCode ? codeClass : bubbleClass)}
+      className={baseBtn + (isCode ? codeClass : bubbleClass)}
     >
       {copied ? <Check size={16} /> : <Copy size={16} />}
     </button>

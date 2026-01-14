@@ -12,15 +12,30 @@ interface CodeBlockProps {
 
 function CodeBlock({ language, code }: CodeBlockProps) {
   return (
-    <div className="relative mx-2 my-4 group">
-      <CopyButton text={code} isCode={true} pos="bottom-right" />
+    <div
+      className="
+      relative my-4 group w-full
+      break-all overflow-x-auto whitespace-pre-wrap
+      "
+    >
+      <CopyButton text={code} isCode={true} />
       <SyntaxHighlighter
         language={language}
         style={oneDark}
+        wrapLongLines
         customStyle={{
           borderRadius: "8px",
           padding: "12px",
-          fontSize: "14px"
+          fontSize: "14px",
+          maxWidth: "100%",
+          overflowX: "auto",
+          whiteSpace: "pre-wrap",
+        }}
+        codeTagProps={{
+          style: {
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+          },
         }}
       >
         {code.replace(/\n$/, "")}
@@ -112,7 +127,7 @@ export default function MarkdownMessage({ text }: MarkdownMessageProps) {
           return <CodeBlock language={match[1]} code={String(children)} />;
         },
         pre: ({node, ...props}) => (
-          <pre className="mx-2 my-4" {...props}/>
+          <pre className="my-4 w-full max-w-full overflow-x-auto" {...props}/>
         )
       }}
     >

@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react'
+import { useEffect, useState } from "react"
 import { useNavigate } from 'react-router-dom'
 
 import { useUserStore } from '@/store/user-store'
@@ -20,7 +20,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader
-} from '@/components/ui/sidebar'
+} from "@/components/ui/sidebar"
 
 import {
   DropdownMenu,
@@ -36,10 +36,8 @@ export function AppSidebar() {
   const setThreadHistory = useUserStore(s => s.setThreadHistory)
   const setStartThread = useThreadStore(s => s.setStartThread)
   const navigate = useNavigate()
-  const [renamingId, setRenamingId] = useState<string | null>(null)
+  const [renamingId, setRenamingId] = useState<string|null>(null)
   const [draftTitle, setDraftTitle] = useState("")
-  const inputRef = useRef<HTMLInputElement>(null)
-  //const catchThreads = useUserStore.getState().threadHistory;
   const handleClickThread = async (threadId:string) => {
     setStartThread(false)
     if (!threadId) {
@@ -129,15 +127,14 @@ export function AppSidebar() {
                       <a>
                         {renamingId === item.id ? (
                           <input
-                            ref={inputRef}
                             defaultValue={item.title}
                             className="
                               w-full bg-transparent outline-none
                               text-sm
                             "
                             autoFocus
-                            onMouseDown={e => e.stopPropagation()}
                             onFocus={e => e.currentTarget.select()}
+                            onMouseDown={e => e.stopPropagation()}
                             onClick={e => e.stopPropagation()}
                             onKeyDown={e => {
                               if (e.key === "Enter") {
@@ -153,7 +150,7 @@ export function AppSidebar() {
                         )}
                       </a>
                     </SidebarMenuButton>
-                    <DropdownMenu>
+                    <DropdownMenu modal={false}>
                       <DropdownMenuTrigger asChild>
                         <button
                           className="
@@ -167,7 +164,10 @@ export function AppSidebar() {
                           <MoreHorizontal className="h-4 w-4" />
                         </button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent
+                        align="end"
+                        onCloseAutoFocus={e => e.preventDefault()}
+                      >
                         <DropdownMenuItem
                           className="cursor-pointer"
                           onClick={() => handleClickRename(item.id, item.title)}

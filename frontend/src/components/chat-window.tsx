@@ -20,7 +20,7 @@ export function ChatWindow() {
   const defaultClass = "group mb-4 ";
   const userDivClass = "ml-auto w-fit max-w-[85%]";
   const userBubble = `
-    break-words whitespace-pre-wrap bg-gray-600
+    break-words whitespace-pre-wrap bg-sidebar-accent
     text-white p-3 rounded-xl mb-[10px]
   `;
   const assistantBubble = `
